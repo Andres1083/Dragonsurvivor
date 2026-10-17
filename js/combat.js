@@ -21,6 +21,9 @@ const soldierWalk = [];
   }
 })();
 const soldierIdle = new Image(); soldierIdle.src = 'assets/enemigos/soldado/idle.png';
+/* Soldado: poses de apuntar/disparar (rifle) y de golpe cuerpo a cuerpo */
+const soldierPose = {};
+for (const n of ['aim', 'shoot_1', 'shoot_2', 'melee_1', 'melee_2', 'melee_3']) { const img = new Image(); img.src = 'assets/enemigos/soldado/' + n + '.png'; soldierPose[n] = img; }
 
 /* Jefe Yamcha (pixel art, mira a la derecha): 6 frames de guardia al caminar y 2 de puñetazo al estar cerca */
 const yamchaWalk = [], yamchaAttack = [];
@@ -50,7 +53,7 @@ const ETYPES = {
 function spawnEnemy(type, near) {
   const d = ETYPES[type], a = Math.random() * TAU, dist = near ? 260 : Math.hypot(W, H) / Z / 2 + 60;
   const k = 1 + time / 150 + bossN * 0.5;
-  const e = { type, x: P.x + Math.cos(a) * dist, y: P.y + Math.sin(a) * dist, hp: d.hp * k, maxHp: d.hp * k, spd: d.spd * (1 + Math.min(0.5, time / 600)), dmg: d.dmg * (1 + time / 300), r: d.r, xp: d.xp, face: 1, flash: 0, kx: 0, ky: 0, ph: Math.random() * 9 };
+  const e = { type, x: P.x + Math.cos(a) * dist, y: P.y + Math.sin(a) * dist, hp: d.hp * k, maxHp: d.hp * k, spd: d.spd * (1 + Math.min(0.5, time / 600)), dmg: d.dmg * (1 + time / 300), r: d.r, xp: d.xp, face: 1, flash: 0, kx: 0, ky: 0, ph: Math.random() * 9, st: 'walk', stT: 0, cd: 0.6 + Math.random() * 1.2, pose: null };
   enemies.push(e); return e;
 }
 function spawnLogic(dt) {

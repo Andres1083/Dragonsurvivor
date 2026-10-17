@@ -28,10 +28,12 @@ function update(dt) {
     if (e.dead) continue;
     const dx = P.x - e.x, dy = P.y - e.y, d = Math.hypot(dx, dy) || 1;
     e.ph += dt * 8; e.flash = Math.max(0, e.flash - dt);
-    e.x += (dx / d * e.spd + e.kx) * dt; e.y += (dy / d * e.spd + e.ky) * dt;
+    let mv = 1, contact = true;
+    if (e.type === 'bandit') { mv = soldierAI(e, dt, d); contact = false; }
+    e.x += (dx / d * e.spd * mv + e.kx) * dt; e.y += (dy / d * e.spd * mv + e.ky) * dt;
     e.kx *= Math.pow(0.02, dt); e.ky *= Math.pow(0.02, dt);
     if (Math.abs(dx) > 4) e.face = dx > 0 ? 1 : -1;
-    if (d < e.r + P.r) hurtPlayer(e.dmg);
+    if (contact && d < e.r + P.r) hurtPlayer(e.dmg);
     if (d > 1100) { e.x = P.x + (Math.random() - .5) * 600; e.y = P.y + Math.sign(Math.random() - .5) * 560; } // los que se quedan lejos reaparecen cerca
   }
   // separación simple (los pegados se apartan)
@@ -43,6 +45,9 @@ function update(dt) {
     for (const e of enemies) { if (e.dead || s.hit.has(e) || (e.x - s.x) ** 2 + (e.y - s.y) ** 2 > (e.r + 10) ** 2) continue; s.hit.add(e); hurtEnemy(e, s.dmg, s.vx, s.vy, 70); if (s.pierce-- <= 0) { s.life = 0; break; } }
   }
   shots = shots.filter(s => s.life > 0);
+  // balas enemigas
+  for (const b of eshots) { b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; if ((b.x - P.x) ** 2 + (b.y - P.y) ** 2 < (P.r + 5) ** 2) { hurtPlayer(b.dmg); b.life = 0; } }
+  eshots = eshots.filter(b => b.life > 0);
   enemies = enemies.filter(e => !e.dead);
   // gemas
   const mr = 70 * P.magnet;
@@ -76,3 +81,29 @@ function update(dt) {
   const vw = W / Z, vh = H / Z; camx += (P.x - vw / 2 - camx) * Math.min(1, dt * 8); camy += (P.y - vh / 2 - camy) * Math.min(1, dt * 8);
 }
 
+
+/* IA del soldado: avanza hasta ~250 px, se detiene a apuntar y disparar; si Goku se acerca, golpea con el rifle. Devuelve el factor de velocidad. */
+function soldierAI(e, dt, d) {
+  const meleeR = e.r + P.r + 34;
+  e.stT -= dt; e.cd -= dt;
+  if (e.st === 'melee') {
+    e.pose = e.stT > 0.22 ? 'melee_2' : 'melee_3';
+    if (!e.hit && e.stT <= 0.22) { e.hit = true; if (d < meleeR + 22) hurtPlayer(e.dmg * 1.4); }
+    if (e.stT <= 0) { e.st = 'walk'; e.cd = 0.9; e.pose = null; }
+    return 0;
+  }
+  if (e.st === 'aim') {
+    e.pose = e.stT > 0.18 ? 'aim' : (Math.floor(e.stT * 20) % 2 ? 'shoot_1' : 'shoot_2');
+    if (!e.fired && e.stT <= 0.18) {
+      e.fired = true;
+      const ox = e.x + e.face * 36, oy = e.y - 24, a = Math.atan2(P.y - 6 - oy, P.x - ox);
+      eshots.push({ x: ox, y: oy, vx: Math.cos(a) * 330, vy: Math.sin(a) * 330, dmg: e.dmg * 0.8, life: 1.6 });
+      fx.push({ k: 'burst', x: ox + e.face * 8, y: oy, r: 14, t: 0.1, max: 0.1 }); sfxBeep(300, 0.06, 'square');
+    }
+    if (e.stT <= 0) { e.st = 'walk'; e.cd = 1.7 + Math.random() * 0.6; e.pose = null; }
+    return 0;
+  }
+  if (d < meleeR) { e.st = 'melee'; e.stT = 0.55; e.hit = false; return 0; }
+  if (d < 270 && d > 110 && e.cd <= 0) { e.st = 'aim'; e.stT = 0.6; e.fired = false; return 0; }
+  return d < 250 && d > 110 ? 0.35 : 1;
+}

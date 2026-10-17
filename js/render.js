@@ -36,8 +36,9 @@ function drawEnemy(e) {
     // Soldado: sprite que mira a la derecha (e.face ya lo voltea hacia el jugador)
     let img = soldierIdle;
     if (soldierWalk.length) img = soldierWalk[Math.floor(e.ph * 0.75) % soldierWalk.length] || soldierWalk[0];
+    if (e.pose && soldierPose[e.pose] && soldierPose[e.pose].complete && soldierPose[e.pose].naturalWidth) img = soldierPose[e.pose];
     if (img && img.complete && img.naturalWidth) {
-      const h = 84 / s, wd = h * img.naturalWidth / img.naturalHeight;
+      const h = img.naturalHeight * (84 / 126) / s, wd = h * img.naturalWidth / img.naturalHeight;
       if (fl) ctx.filter = 'brightness(2.4)';
       ctx.drawImage(img, -wd / 2, -h + 9, wd, h);
       ctx.filter = 'none';
@@ -112,6 +113,11 @@ function drawFxTop() {
     const k = 1 - f.t / f.max;
     if (f.k === 'ring') { ctx.strokeStyle = `rgba(255,240,160,${1 - k})`; ctx.lineWidth = 10 * (1 - k) + 2; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
     else { ctx.fillStyle = `rgba(255,236,150,${0.8 * (1 - k)})`; ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU, r = f.r * (0.3 + 0.5 * k) * (i % 2 ? 0.55 : 1); ctx[i ? 'lineTo' : 'moveTo'](f.x + Math.cos(a) * r, f.y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); }
+  }
+  for (const b of eshots) {
+    const a = Math.atan2(b.vy, b.vx); ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(a);
+    ctx.fillStyle = 'rgba(255,200,80,.45)'; ctx.fillRect(-16, -1.5, 16, 3);
+    ctx.fillStyle = '#fff3b0'; ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, TAU); ctx.fill(); ctx.restore();
   }
   for (const s of shots) {
     const a = Math.atan2(s.vy, s.vx); ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(a);

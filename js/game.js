@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- estado de la partida ---------- */
 let state = 'title';
-let P, enemies, gems, shots, parts, texts, fx, pending, time, kills, spawnT, bossN, camx, camy, shake, bossRef;
+let P, enemies, gems, shots, eshots, parts, texts, fx, pending, time, kills, spawnT, bossN, camx, camy, shake, bossRef;
 let runZeni = 0;
 const WEAPON_MAX = 8;
 
@@ -39,7 +39,7 @@ function newRun() {
     cd: { punch: 0.3, kick: 1.6, ki: 1 },
     charId: ch.id
   };
-  enemies = []; gems = []; shots = []; parts = []; texts = []; fx = []; pending = [];
+  enemies = []; gems = []; shots = []; eshots = []; parts = []; texts = []; fx = []; pending = [];
   time = 0; kills = 0; spawnT = 0; bossN = 0; shake = 0; bossRef = null;
   runZeni = 0;
   camx = -W / 2; camy = -H / 2;
