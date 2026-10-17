@@ -22,6 +22,14 @@ const soldierWalk = [];
 })();
 const soldierIdle = new Image(); soldierIdle.src = 'assets/enemigos/soldado/idle.png';
 
+/* Jefe Yamcha (pixel art, mira a la derecha): 6 frames de guardia al caminar y 2 de puñetazo al estar cerca */
+const yamchaWalk = [], yamchaAttack = [];
+(function loadYamcha() {
+  for (let i = 1; i <= 6; i++) { const img = new Image(); img.src = 'assets/enemigos/yamcha/walk_0' + i + '.png'; yamchaWalk.push(img); }
+  for (let i = 1; i <= 2; i++) { const img = new Image(); img.src = 'assets/enemigos/yamcha/attack_0' + i + '.png'; yamchaAttack.push(img); }
+})();
+const yamchaIdle = new Image(); yamchaIdle.src = 'assets/enemigos/yamcha/idle.png';
+
 const coinFrames = [];
 (function loadCoins() {
   for (let i = 1; i <= 10; i++) {
@@ -34,10 +42,10 @@ const coinFrames = [];
 /* ---------- enemigos ---------- */
 const ETYPES = {
   wolf:   { name: 'Lobo', hp: 14, spd: 118, dmg: 6, r: 12, xp: 1, from: 0 },
-  bandit: { name: 'Soldado', hp: 26, spd: 80, dmg: 8, r: 13, xp: 2, from: 40 },
+  bandit: { name: 'Soldado', hp: 26, spd: 80, dmg: 8, r: 16, xp: 2, from: 40, barY: 74 },
   raptor: { name: 'Raptor', hp: 22, spd: 150, dmg: 8, r: 13, xp: 2, from: 100 },
   bear:   { name: 'Oso', hp: 95, spd: 58, dmg: 14, r: 21, xp: 6, from: 160 },
-  boss:   { name: 'Gran Oso Rojo', hp: 900, spd: 66, dmg: 22, r: 36, xp: 40, from: 1e9 }
+  boss:   { name: 'Yamcha', hp: 900, spd: 66, dmg: 22, r: 40, xp: 40, from: 1e9 }
 };
 function spawnEnemy(type, near) {
   const d = ETYPES[type], a = Math.random() * TAU, dist = near ? 260 : Math.hypot(W, H) / Z / 2 + 60;

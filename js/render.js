@@ -37,7 +37,7 @@ function drawEnemy(e) {
     let img = soldierIdle;
     if (soldierWalk.length) img = soldierWalk[Math.floor(e.ph * 0.75) % soldierWalk.length] || soldierWalk[0];
     if (img && img.complete && img.naturalWidth) {
-      const h = 58 / s, wd = h * img.naturalWidth / img.naturalHeight;
+      const h = 84 / s, wd = h * img.naturalWidth / img.naturalHeight;
       if (fl) ctx.filter = 'brightness(2.4)';
       ctx.drawImage(img, -wd / 2, -h + 9, wd, h);
       ctx.filter = 'none';
@@ -51,6 +51,16 @@ function drawEnemy(e) {
     ctx.fillStyle = C('#2a2a38'); ctx.fillRect(-9, -18, 18, 6); ctx.fillStyle = fl ? '#fff' : '#ffd23f'; ctx.fillRect(2, -17, 3, 2.4); ctx.fillRect(-4, -17, 3, 2.4);
     ctx.fillStyle = C('#c0392b'); ctx.beginPath(); ctx.moveTo(-9, -22); ctx.lineTo(9, -22); ctx.lineTo(7, -26); ctx.lineTo(-7, -26); ctx.fill();
     }
+  } else if (e.type === 'boss' && yamchaIdle.complete && yamchaIdle.naturalWidth) {
+    // Jefe Yamcha: pixel art que mira a la derecha (e.face lo voltea hacia el jugador). Cerca de Goku usa los puñetazos.
+    const near = Math.hypot(P.x - e.x, P.y - e.y) < e.r + P.r + 36;
+    const set = near ? yamchaAttack : yamchaWalk;
+    const img = set[Math.floor(e.ph * (near ? 0.5 : 0.75)) % set.length] || yamchaIdle;
+    const h = 130 / s, wd = h * img.naturalWidth / img.naturalHeight;
+    ctx.imageSmoothingEnabled = false;            // mantiene nítidos los píxeles al ampliar
+    if (fl) ctx.filter = 'brightness(2.4)';
+    ctx.drawImage(img, -wd / 2, -h + 9, wd, h);
+    ctx.filter = 'none'; ctx.imageSmoothingEnabled = true;
   } else { // oso (y jefe: más grande y rojo)
     const boss = e.type === 'boss', bc = boss ? '#a8321f' : '#7a5230', bc2 = boss ? '#c84a30' : '#946438';
     limb(-9, 8, -10 + w * 3, 17, 8, C(bc)); limb(9, 8, 10 - w * 3, 17, 8, C(bc));
@@ -64,7 +74,7 @@ function drawEnemy(e) {
     ctx.fillStyle = fl ? '#fff' : '#ffd23f'; if (boss) { ctx.fillRect(4, -19, 3, 3); ctx.fillRect(10, -19, 3, 3); }
   }
   ctx.restore();
-  if (e.hp < e.maxHp && e.type !== 'boss') { const bw = e.r * 2; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(e.x - bw / 2, e.y - e.r * 1.8 - 6, bw, 3); ctx.fillStyle = '#ff5a5a'; ctx.fillRect(e.x - bw / 2, e.y - e.r * 1.8 - 6, bw * Math.max(0, e.hp / e.maxHp), 3); }
+  if (e.hp < e.maxHp && e.type !== 'boss') { const bw = e.r * 2, by = e.y - (ETYPES[e.type].barY || e.r * 1.8) - 6; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(e.x - bw / 2, by, bw, 3); ctx.fillStyle = '#ff5a5a'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.maxHp), 3); }
 }
 
 function drawFx() {
