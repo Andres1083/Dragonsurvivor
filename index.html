@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Dragonsurvivor</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="cv"></canvas>
+<button type="button" id="btn-pause" class="hud-pause" hidden aria-label="Pausa">⏸</button>
+
+<!-- MENÚ PRINCIPAL -->
+<div class="ov show" id="ov-title">
+  <h1 id="t-name">Dragonsurvivor</h1>
+  <p class="zeni-line" id="t-zeni">Zeni: 0</p>
+  <div class="menu-col">
+    <button class="btn sel" id="b-start">▶ Jugar</button>
+    <button class="btn" id="b-chars">👥 Personajes</button>
+    <button class="btn" id="b-gacha">🔮 Gachaball</button>
+  </div>
+  <p class="small">Mover: <kbd>WASD</kbd> / flechas / stick · Pausa: <kbd>Esc</kbd></p>
+  <p class="small" id="t-best"></p>
+</div>
+
+<!-- PERSONAJES -->
+<div class="ov" id="ov-chars">
+  <div class="chars-top">
+    <button class="btn btn-sm" id="b-chars-back">← Volver</button>
+    <h2>Personajes</h2>
+    <p class="zeni-line" id="chars-zeni">Zeni: 0</p>
+  </div>
+  <div class="chars-layout">
+    <div class="char-list" id="char-list"></div>
+    <div class="char-detail" id="char-detail">
+      <p class="small">Selecciona un guerrero</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- GACHABALL -->
+<div class="ov" id="ov-gacha">
+  <div class="chars-top">
+    <button class="btn btn-sm" id="b-gacha-back">← Volver</button>
+    <h2>Gachaball</h2>
+    <p class="zeni-line" id="gacha-zeni">Zeni: 0</p>
+  </div>
+
+  <div class="gacha-layout">
+    <div class="gacha-machine-wrap">
+      <img id="gacha-machine" class="gacha-machine" src="assets/gacha/machine_idle_ui.png" alt="Máquina Capsule Corp">
+      <div id="gacha-result" class="gacha-result"></div>
+    </div>
+
+    <div class="gacha-panel">
+      <div class="gacha-tickets">
+        <div class="gacha-ticket-row">
+          <img src="assets/gacha/ticket_normal_silver_ui.png" alt="">
+          <span id="gacha-t-silver">×0</span>
+        </div>
+        <div class="gacha-ticket-row">
+          <img src="assets/gacha/ticket_premium_gold_ui.png" alt="">
+          <span id="gacha-t-gold">×0</span>
+        </div>
+        <div class="gacha-ticket-row">
+          <img src="assets/gacha/ticket_legendary_ui.png" alt="">
+          <span id="gacha-t-legendary">×0</span>
+        </div>
+      </div>
+
+      <p class="small" style="margin:6px 0 4px;opacity:.9">Elige invocación</p>
+      <div class="gacha-opts">
+        <button type="button" class="gacha-opt sel" data-type="normal">
+          <img src="assets/gacha/ticket_normal_silver_ui.png" alt="">
+          <b>Normal</b>
+          <span class="gacha-cost">80 Zeni</span>
+        </button>
+        <button type="button" class="gacha-opt" data-type="premium">
+          <img src="assets/gacha/ticket_premium_gold_ui.png" alt="">
+          <b>Premium</b>
+          <span class="gacha-cost">220 Zeni</span>
+        </button>
+        <button type="button" class="gacha-opt" data-type="legendary">
+          <img src="assets/gacha/ticket_legendary_ui.png" alt="">
+          <b>Legendaria</b>
+          <span class="gacha-cost">1 ticket</span>
+        </button>
+      </div>
+
+      <button class="btn" id="b-gacha-pull" style="width:100%;margin-top:12px">Invocar</button>
+      <p class="small" style="margin-top:10px;opacity:.75">Por ahora las cápsulas dan Zeni y tickets. Los guerreros llegarán con el roster.</p>
+    </div>
+  </div>
+</div>
+
+<!-- NIVEL -->
+<div class="ov" id="ov-level">
+  <h2>¡Subiste de nivel!</h2>
+  <div class="cards" id="cards"></div>
+</div>
+
+<!-- PAUSA -->
+<div class="ov" id="ov-pause">
+  <h2>Pausa</h2>
+  <div id="pause-stats" class="small"></div>
+  <button class="btn sel" id="b-resume">Seguir</button>
+  <button class="btn" id="b-quit">Salir al inicio</button>
+</div>
+
+<!-- GAME OVER -->
+<div class="ov" id="ov-over">
+  <h2>Has caído…</h2>
+  <p id="over-text"></p>
+  <button class="btn sel" id="b-again">Otra vez</button>
+  <button class="btn" id="b-over-menu">Menú</button>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/input.js"></script>
+<script src="js/world.js"></script>
+<script src="js/characters/goku_kid.js"></script>
+<script src="js/characters/registry.js"></script>
+<script src="js/game.js"></script>
+<script src="js/upgrades.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/update.js"></script>
+<script src="js/render.js"></script>
+<script src="js/gacha.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
