@@ -9,6 +9,15 @@ const treePine = new Image(); treePine.src = 'assets/world/tree_pine.png';
 const TREE_SCALE = 4.5;
 const TREE_PAD_Y = Math.ceil(40.4 * TREE_SCALE / T) + 1;   // filas extra abajo para no recortar copas altas
 
+/* texturas del suelo (pack Forgotten Memories): se usan como patrón que se repite, así no se ven costuras */
+const GROUND = {};
+for (const n of ['grass_a', 'grass_b', 'dirt_a', 'dirt_b', 'water']) { const i = new Image(); i.src = 'assets/world/tiles/' + n + '.png'; GROUND[n] = { img: i, pat: null }; }
+function groundPattern(n) {
+  const g = GROUND[n];
+  if (!g.pat && g.img.complete && g.img.naturalWidth) g.pat = ctx.createPattern(g.img, 'repeat');
+  return g.pat;
+}
+
 function terrain(tx, ty) {
   const dx = tx, dy = ty;
   const near = Math.hypot(dx, dy) < 7;                       // zona de inicio siempre es pradera
@@ -26,6 +35,7 @@ function drawWorld(camx, camy, vw, vh, time) {
   const x0 = Math.floor(camx / T) - 2, x1 = Math.floor((camx + vw) / T) + 2;
   const y0 = Math.floor(camy / T) - 1, y1 = Math.floor((camy + vh) / T) + TREE_PAD_Y;
   const trees = [];
+  ctx.imageSmoothingEnabled = false;
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
     const k = terrain(tx, ty), h = hash(tx, ty), px = tx * T, py = ty * T;
     let col;
@@ -33,13 +43,17 @@ function drawWorld(camx, camy, vw, vh, time) {
     else if (k === 'rock') { const g = 138 + h * 26; col = `rgb(${g},${g - 4},${g - 12})`; }
     else if (k === 'dirt') { const g = h * 22; col = `rgb(${200 - g},${160 - g},${100 - g * .6})`; }
     else { const g = h * 24; col = `rgb(${88 - g * .5},${178 - g},${70 - g * .4})`; }
-    ctx.fillStyle = col; ctx.fillRect(px, py, T + 1, T + 1);
+    let pat = null;
+    if (k === 'grass') pat = groundPattern(vnoise(tx * 0.05 + 7, ty * 0.05 + 3) > 0.62 ? 'grass_b' : 'grass_a');
+    else if (k === 'dirt') pat = groundPattern(vnoise(tx * 0.08 + 1, ty * 0.08 + 9) > 0.5 ? 'dirt_b' : 'dirt_a');
+    else if (k === 'water') { pat = groundPattern('water'); if (pat) pat.setTransform(new DOMMatrix().translate(time * 7, time * 3).scale(1.5)); }
+    ctx.fillStyle = pat || col; ctx.fillRect(px, py, T + 1, T + 1);
     if (k === 'water') {
       ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath();
       const wy = py + 14 + h * 20, wx = px + 6 + Math.sin(time + tx) * 4; ctx.moveTo(wx, wy); ctx.quadraticCurveTo(wx + 10, wy - 5, wx + 20, wy); ctx.stroke();
     } else if (k === 'grass') {
-      if (h > 0.55 && h < 0.8) { ctx.strokeStyle = 'rgba(30,110,40,.55)'; ctx.lineWidth = 2; ctx.beginPath(); const gx = px + h * 40, gy = py + 20 + h * 14; ctx.moveTo(gx, gy); ctx.lineTo(gx - 3, gy - 8); ctx.moveTo(gx, gy); ctx.lineTo(gx + 3, gy - 9); ctx.stroke(); }
-      if (h > 0.96) { ctx.fillStyle = h > 0.98 ? '#ffe45c' : '#ff9ad0'; ctx.beginPath(); ctx.arc(px + 24, py + 26, 3, 0, TAU); ctx.fill(); }
+      if (!GROUND.grass_a.pat && h > 0.55 && h < 0.8) { ctx.strokeStyle = 'rgba(30,110,40,.55)'; ctx.lineWidth = 2; ctx.beginPath(); const gx = px + h * 40, gy = py + 20 + h * 14; ctx.moveTo(gx, gy); ctx.lineTo(gx - 3, gy - 8); ctx.moveTo(gx, gy); ctx.lineTo(gx + 3, gy - 9); ctx.stroke(); }
+      if (!GROUND.grass_a.pat && h > 0.96) { ctx.fillStyle = h > 0.98 ? '#ffe45c' : '#ff9ad0'; ctx.beginPath(); ctx.arc(px + 24, py + 26, 3, 0, TAU); ctx.fill(); }
       if (h < 0.045) trees.push([px + 24, py + 30, h]);
     } else if (k === 'rock') {
       if (h > 0.8) { // peñasco
@@ -50,6 +64,7 @@ function drawWorld(camx, camy, vw, vh, time) {
       }
     } else if (k === 'dirt' && h > 0.9) { ctx.fillStyle = 'rgba(90,60,30,.35)'; ctx.beginPath(); ctx.ellipse(px + 20, py + 28, 6, 3, 0, 0, TAU); ctx.fill(); }
   }
+  ctx.imageSmoothingEnabled = true;
   for (const [x, y, h] of trees) {
     const pine = ((h * 1000) | 0) % 2 === 0;
     const img = pine ? treePine : treeOak;
