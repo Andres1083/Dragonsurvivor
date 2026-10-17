@@ -16,7 +16,8 @@ const GACHA_TYPES = {
       { w: 25, kind: 'zeni', amount: [80, 120] },
       { w: 15, kind: 'ticket', ticket: 'silver', n: 1 },
       { w: 8,  kind: 'ticket', ticket: 'gold', n: 1 },
-      { w: 2,  kind: 'ticket', ticket: 'legendary', n: 1 }
+      { w: 2,  kind: 'ticket', ticket: 'legendary', n: 1 },
+      { w: 7,  kind: 'char', pool: ['goku_kid', 'yamcha'] }
     ]
   },
   premium: {
@@ -30,7 +31,8 @@ const GACHA_TYPES = {
       { w: 30, kind: 'zeni', amount: [180, 260] },
       { w: 20, kind: 'ticket', ticket: 'gold', n: 1 },
       { w: 10, kind: 'ticket', ticket: 'silver', n: 2 },
-      { w: 5,  kind: 'ticket', ticket: 'legendary', n: 1 }
+      { w: 5,  kind: 'ticket', ticket: 'legendary', n: 1 },
+      { w: 18, kind: 'char', pool: ['goku_kid', 'yamcha'] }
     ]
   },
   legendary: {
@@ -43,7 +45,8 @@ const GACHA_TYPES = {
       { w: 40, kind: 'zeni', amount: [300, 450] },
       { w: 25, kind: 'ticket', ticket: 'gold', n: 2 },
       { w: 20, kind: 'ticket', ticket: 'legendary', n: 1 },
-      { w: 15, kind: 'zeni', amount: [500, 800] }
+      { w: 15, kind: 'zeni', amount: [500, 800] },
+      { w: 45, kind: 'char', pool: ['goku_kid', 'yamcha'] }
     ]
   }
 };
@@ -82,6 +85,11 @@ function resolveReward(row) {
     addTickets(row.ticket, row.n);
     const names = { silver: 'Ticket normal', gold: 'Ticket premium', legendary: 'Ticket mítico' };
     return { kind: 'ticket', ticket: row.ticket, n: row.n, label: `+${row.n} ${names[row.ticket]}` };
+  }
+  if (row.kind === 'char') {
+    const id = row.pool[Math.floor(Math.random() * row.pool.length)], ch = CHARACTERS[id];
+    const had = getCopies(id) > 0, n = addCopy(id, 1);
+    return { kind: 'char', char: id, label: had ? `Copia de ${ch.name} (×${n})` : `¡NUEVO! ${ch.name} se une al equipo` };
   }
   return { kind: 'none', label: 'Nada…' };
 }

@@ -21,6 +21,7 @@ function update(dt) {
       P.cd[k] = cdv[k] * P.cdMul * (k === 'punch' ? Math.max(0.45, 1 - P.w.punch * 0.06) : k === 'kick' ? Math.max(0.55, 1 - P.w.kick * 0.05) : Math.max(0.5, 1 - P.w.ki * 0.05));
     }
   }
+  updateSkills(dt);
   for (const p of pending) p.t -= dt; for (const p of pending.filter(p => p.t <= 0)) p.fn(); pending = pending.filter(p => p.t > 0);
   spawnLogic(dt);
   // enemigos

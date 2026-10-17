@@ -209,3 +209,31 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
   .gacha-machine { height: min(260px, 38vh); }
   .gacha-ticket-fx { width: 64px; }
 }
+
+/* ----- Barra de habilidades personales ----- */
+.skillbar { position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 20; display: flex; gap: 10px; }
+.skillbar[hidden] { display: none !important; }
+.sk-btn {
+  position: relative; width: 66px; height: 66px; padding: 0; border-radius: 14px; cursor: pointer;
+  background: linear-gradient(160deg, #1b2f6b, #0f1c44); border: 3px solid #f08a24;
+  box-shadow: 0 4px 0 rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.12); overflow: hidden; touch-action: none;
+}
+.sk-btn:active { transform: translateY(2px); }
+.sk-btn.empty { opacity: .28; border-color: #6b7aa8; cursor: default; }
+.sk-btn.locked { opacity: .55; border-color: #7a6a58; filter: grayscale(.6); cursor: default; }
+.sk-ico { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.sk-ico img { height: 48px; width: auto; image-rendering: pixelated; }
+.sk-sym { position: absolute; right: 6px; bottom: 4px; font-size: 18px; color: #ffd23f; text-shadow: 0 1px 2px #000; }
+.sk-emoji { font-size: 32px; font-weight: 400; }
+/* relleno tipo reloj (Diablo): la parte oscura es lo que falta de carga y va barriendo en sentido horario */
+.sk-fill { position: absolute; inset: 0; background: conic-gradient(from 0deg, rgba(5,8,20,0) 0deg calc(360deg - var(--p, 0deg)), rgba(5,8,20,.72) calc(360deg - var(--p, 0deg)) 360deg); pointer-events: none; }
+.sk-key { position: absolute; left: 5px; top: 2px; font-size: 11px; font-weight: 700; color: #ffd9a0; text-shadow: 0 1px 2px #000; }
+.sk-lv { position: absolute; right: 5px; top: 2px; font-size: 10px; font-weight: 700; color: #bfe0ff; text-shadow: 0 1px 2px #000; }
+.sk-btn.ready { box-shadow: 0 0 10px 2px rgba(255,170,60,.65), 0 4px 0 rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.18); }
+@media (max-width: 600px) { .sk-btn { width: 58px; height: 58px; } .skillbar { gap: 7px; } }
+.skill-list { margin: 0 0 14px; font-size: 13px; }
+.skill-list > b { color: var(--gold); }
+.skill-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid #2a3a55; }
+.skill-row i { grid-column: 1 / -1; font-style: normal; color: #8aa0c0; font-size: 12px; }
+.skill-row .lv { color: #ffe566; font-weight: 700; }
+.skill-row.off { opacity: .6; }

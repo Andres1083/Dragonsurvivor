@@ -23,6 +23,8 @@ function setState(s) {
   if (s === 'gacha' && typeof renderGachaScreen === 'function') renderGachaScreen();
   const pb = document.getElementById('btn-pause');
   if (pb) pb.hidden = (s !== 'play');
+  const sb = document.getElementById('skillbar');
+  if (sb) sb.style.visibility = (s === 'play') ? 'visible' : 'hidden';
   mSel = 0;
 }
 
@@ -156,13 +158,19 @@ function renderCharDetail() {
       `</div>`;
   });
 
+  let sk = '';
+  if (c.skills && typeof SKILLS !== 'undefined') {
+    sk = `<div class="skill-list"><b>Habilidades personales</b> <span class="small">· Copias: ${getCopies(c.id)}</span>` +
+      c.skills.map((id, k) => { const lv = skillLevel(c.id, k), d = SKILLS[id];
+        return `<div class="skill-row${lv ? '' : ' off'}"><span>${lv ? '' : '🔒 '}${d.name}</span><span class="lv">${lv ? 'Nv ' + lv + '/' + SKILL_MAX_LV : 'Copia ' + (k + 1)}</span><i>${d.desc}</i></div>`; }).join('') + `</div>`;
+  }
   panel.innerHTML =
     `<div class="hd">` +
       (c.portrait ? `<img src="${c.portrait}" alt="">` : '') +
       `<div class="meta"><b>${c.name}</b><span class="rarity ${c.rarity || ''}">${c.rarity || '?'}</span></div>` +
     `</div>` +
     (c.description ? `<div class="desc">${c.description}</div>` : '') +
-    rows +
+    sk + rows +
     `<div class="actions">` +
       `<button class="btn" id="b-select-char">Elegir compañero</button>` +
     `</div>`;

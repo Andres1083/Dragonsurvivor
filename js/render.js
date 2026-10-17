@@ -117,6 +117,7 @@ function drawFx() {
 }
 function drawFxTop() {
   for (const f of fx) {
+    if (drawSkillFx(f)) continue;
     const k = 1 - f.t / f.max;
     if (f.k === 'ring') { ctx.strokeStyle = `rgba(255,240,160,${1 - k})`; ctx.lineWidth = 10 * (1 - k) + 2; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
     else { ctx.fillStyle = `rgba(255,236,150,${0.8 * (1 - k)})`; ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU, r = f.r * (0.3 + 0.5 * k) * (i % 2 ? 0.55 : 1); ctx[i ? 'lineTo' : 'moveTo'](f.x + Math.cos(a) * r, f.y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); }
@@ -207,6 +208,7 @@ function render() {
   drawWorld(camx, camy, vw, vh, performance.now() / 1000);
   drawFx();
   const list = enemies.map(e => ({ y: e.y, f: () => drawEnemy(e) })); list.push({ y: P.y, f: drawHero }); list.sort((a, b) => a.y - b.y); for (const o of list) o.f();
+  drawSkillProjectiles();
   drawFxTop();
   drawHUD();
 }

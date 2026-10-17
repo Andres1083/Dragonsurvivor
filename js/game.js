@@ -43,4 +43,5 @@ function newRun() {
   time = 0; kills = 0; spawnT = 0; bossN = 0; shake = 0; bossRef = null;
   runZeni = 0;
   camx = -W / 2; camy = -H / 2;
+  if (typeof resetSkills === 'function') resetSkills();
 }

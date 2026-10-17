@@ -8,6 +8,8 @@ const CHARACTERS = {
     rarity: 'R',
     description: 'El pequeño guerrero saiyajin. Equilibrado y listo para pelear.',
     unlocked: true,
+    startCopies: 1,
+    skills: ['baculo_sagrado', 'baculo_giro', 'baculo_boomerang'],
     portrait: 'assets/personajes/goku_kid/idle_01.png',
     // valores base (antes de mejoras)
     base: {
@@ -17,6 +19,16 @@ const CHARACTERS = {
       magnet: 1.0,
       recarga: 1.0
     }
+  },
+  yamcha: {
+    id: 'yamcha',
+    name: 'Yamcha',
+    rarity: 'SR',
+    description: 'Bandido del desierto y maestro del Puño del Colmillo de Lobo. Más fuerte, algo más lento.',
+    unlocked: false,           // se consigue con copias del gacha
+    skills: ['rogafufuken', 'katana', 'lanzacohetes'],
+    portrait: 'assets/enemigos/yamcha/idle.png',
+    base: { hp: 115, fuerza: 1.1, velocidad: 0.95, magnet: 1.0, recarga: 1.0 }
   }
 };
 
@@ -37,7 +49,7 @@ function getCurrentCharacter() {
 }
 
 function getUnlockedCharacters() {
-  return Object.values(CHARACTERS).filter(c => c.unlocked);
+  return Object.values(CHARACTERS).filter(c => c.unlocked || (typeof getCopies === 'function' && getCopies(c.id) > 0));
 }
 
 /** Niveles de mejora guardados por personaje */
