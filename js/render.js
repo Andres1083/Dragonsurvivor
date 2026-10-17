@@ -33,6 +33,15 @@ function drawEnemy(e) {
     ctx.fillStyle = fl ? '#fff' : '#fff6d0'; ctx.fillRect(15, -10, 4, 2); ctx.fillStyle = '#1b1b2f'; ctx.fillRect(14, -14, 2.4, 2.4);
     ctx.fillStyle = C('#a85a1c'); ctx.fillRect(-6, -9, 3, 4); ctx.fillRect(-1, -10, 3, 5);
   } else if (e.type === 'bandit') {
+    // Soldado: sprite que mira a la derecha (e.face ya lo voltea hacia el jugador)
+    let img = soldierIdle;
+    if (soldierWalk.length) img = soldierWalk[Math.floor(e.ph * 0.75) % soldierWalk.length] || soldierWalk[0];
+    if (img && img.complete && img.naturalWidth) {
+      const h = 58 / s, wd = h * img.naturalWidth / img.naturalHeight;
+      if (fl) ctx.filter = 'brightness(2.4)';
+      ctx.drawImage(img, -wd / 2, -h + 9, wd, h);
+      ctx.filter = 'none';
+    } else {
     limb(-4, 6, -5 + w * 4, 14, 5, C('#4a4660')); limb(4, 6, 5 - w * 4, 14, 5, C('#4a4660'));
     ctx.fillStyle = C('#8a4a3a'); ctx.fillRect(-9, -9, 18, 17);
     ctx.fillStyle = C('#3b3552'); ctx.fillRect(-9, 2, 18, 3);
@@ -41,6 +50,7 @@ function drawEnemy(e) {
     ctx.fillStyle = C('#e0b088'); ctx.beginPath(); ctx.arc(0, -16, 8.5, 0, TAU); ctx.fill();
     ctx.fillStyle = C('#2a2a38'); ctx.fillRect(-9, -18, 18, 6); ctx.fillStyle = fl ? '#fff' : '#ffd23f'; ctx.fillRect(2, -17, 3, 2.4); ctx.fillRect(-4, -17, 3, 2.4);
     ctx.fillStyle = C('#c0392b'); ctx.beginPath(); ctx.moveTo(-9, -22); ctx.lineTo(9, -22); ctx.lineTo(7, -26); ctx.lineTo(-7, -26); ctx.fill();
+    }
   } else { // oso (y jefe: más grande y rojo)
     const boss = e.type === 'boss', bc = boss ? '#a8321f' : '#7a5230', bc2 = boss ? '#c84a30' : '#946438';
     limb(-9, 8, -10 + w * 3, 17, 8, C(bc)); limb(9, 8, 10 - w * 3, 17, 8, C(bc));

@@ -4,6 +4,10 @@ const T = 48;
 /* árboles pixel art */
 const treeOak = new Image(); treeOak.src = 'assets/world/tree_oak.png';
 const treePine = new Image(); treePine.src = 'assets/world/tree_pine.png';
+/* Tamaño de los árboles: 1 = el tamaño anterior (diminuto). Con 4.5 los robles miden ~110 px y los pinos ~160 px
+   (Goku mide ~78 px). Sube o baja este número para ajustarlos. */
+const TREE_SCALE = 4.5;
+const TREE_PAD_Y = Math.ceil(40.4 * TREE_SCALE / T) + 1;   // filas extra abajo para no recortar copas altas
 
 function terrain(tx, ty) {
   const dx = tx, dy = ty;
@@ -19,8 +23,8 @@ function terrain(tx, ty) {
   return 'grass';
 }
 function drawWorld(camx, camy, vw, vh, time) {
-  const x0 = Math.floor(camx / T) - 1, x1 = Math.floor((camx + vw) / T) + 1;
-  const y0 = Math.floor(camy / T) - 1, y1 = Math.floor((camy + vh) / T) + 1;
+  const x0 = Math.floor(camx / T) - 2, x1 = Math.floor((camx + vw) / T) + 2;
+  const y0 = Math.floor(camy / T) - 1, y1 = Math.floor((camy + vh) / T) + TREE_PAD_Y;
   const trees = [];
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
     const k = terrain(tx, ty), h = hash(tx, ty), px = tx * T, py = ty * T;
@@ -50,8 +54,8 @@ function drawWorld(camx, camy, vw, vh, time) {
     const pine = ((h * 1000) | 0) % 2 === 0;
     const img = pine ? treePine : treeOak;
     const sc = pine ? (0.35 + h * 2.4) : (0.28 + h * 2.0);
-    const iw = (img.naturalWidth || 40) * sc * 0.18;
-    const ih = (img.naturalHeight || 50) * sc * 0.18;
+    const iw = (img.naturalWidth || 40) * sc * 0.18 * TREE_SCALE;
+    const ih = (img.naturalHeight || 50) * sc * 0.18 * TREE_SCALE;
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath(); ctx.ellipse(x, y + 2, iw * 0.35, Math.max(4, ih * 0.06), 0, 0, TAU); ctx.fill();
     if (img.complete && img.naturalWidth) {

@@ -11,6 +11,17 @@ const wolfWalk = [];
 })();
 const wolfIdle = new Image(); wolfIdle.src = 'assets/enemigos/lobo/idle.png';
 
+/* Soldado (antes "Bandido"/leñador): ciclo de 4 frames, el sprite mira a la derecha */
+const soldierWalk = [];
+(function loadSoldier() {
+  for (const id of ['01', '02', '03', '04']) {
+    const img = new Image();
+    img.src = 'assets/enemigos/soldado/walk_' + id + '.png';
+    soldierWalk.push(img);
+  }
+})();
+const soldierIdle = new Image(); soldierIdle.src = 'assets/enemigos/soldado/idle.png';
+
 const coinFrames = [];
 (function loadCoins() {
   for (let i = 1; i <= 10; i++) {
@@ -23,7 +34,7 @@ const coinFrames = [];
 /* ---------- enemigos ---------- */
 const ETYPES = {
   wolf:   { name: 'Lobo', hp: 14, spd: 118, dmg: 6, r: 12, xp: 1, from: 0 },
-  bandit: { name: 'Bandido', hp: 26, spd: 80, dmg: 8, r: 13, xp: 2, from: 40 },
+  bandit: { name: 'Soldado', hp: 26, spd: 80, dmg: 8, r: 13, xp: 2, from: 40 },
   raptor: { name: 'Raptor', hp: 22, spd: 150, dmg: 8, r: 13, xp: 2, from: 100 },
   bear:   { name: 'Oso', hp: 95, spd: 58, dmg: 14, r: 21, xp: 6, from: 160 },
   boss:   { name: 'Gran Oso Rojo', hp: 900, spd: 66, dmg: 22, r: 36, xp: 40, from: 1e9 }
