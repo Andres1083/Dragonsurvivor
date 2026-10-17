@@ -4,12 +4,13 @@
    Las personales se desbloquean con copias del personaje: la copia nº k+1 desbloquea la habilidad k y cada copia extra la sube de nivel. */
 const SKILL_MAX_LV = 5;
 const SKILLS = {
-  baculo_sagrado:   { name: 'Báculo sagrado',    cd: 6,  icon: 'staff',   desc: 'Golpe frontal de largo alcance contra un enemigo.' },
-  baculo_giro:      { name: 'Giro del báculo',   cd: 9,  icon: 'spin',    desc: 'El báculo gira alrededor de Goku y golpea en círculo.' },
-  baculo_boomerang: { name: 'Báculo boomerang',  cd: 12, icon: 'boom',    desc: 'Lanza el báculo, que atraviesa enemigos y vuelve.' },
-  rogafufuken:      { name: 'Rōgafūfūken',       cd: 7,  icon: 'wolf',    desc: 'Ráfaga de zarpazos del Puño del Colmillo de Lobo.' },
-  katana:           { name: 'Katana',            cd: 10, icon: 'katana',  desc: 'Embestida con tajo que corta todo en línea recta.' },
-  lanzacohetes:     { name: 'Lanzacohetes',      cd: 14, icon: 'rocket',  desc: 'Cohete explosivo que daña en área.' }
+  baculo_sagrado:   { name: 'Báculo sagrado',    cd: 6, cost: 25,  icon: 'staff',   desc: 'Golpe frontal de largo alcance contra un enemigo.' },
+  baculo_giro:      { name: 'Giro del báculo',   cd: 9, cost: 35,  icon: 'spin',    desc: 'El báculo gira alrededor de Goku y golpea en círculo.' },
+  baculo_boomerang: { name: 'Báculo boomerang',  cd: 12, cost: 30, icon: 'boom',    desc: 'Lanza el báculo, que atraviesa enemigos y vuelve.' },
+  rogafufuken:      { name: 'Rōgafūfūken',       cd: 7, cost: 30,  icon: 'wolf',    desc: 'Ráfaga de zarpazos del Puño del Colmillo de Lobo.' },
+  katana:           { name: 'Katana',            cd: 10, cost: 35, icon: 'katana',  desc: 'Embestida con tajo que corta todo en línea recta.' },
+  jankenpon:        { name: '¡Jan-Ken-Pon!',    cd: 8,  cost: 20, icon: 'jkp',     desc: 'Piedra, papel o tijera al azar: golpe fuerte, área o doble tajo.' },
+  lanzacohetes:     { name: 'Lanzacohetes',      cd: 14, cost: 45, icon: 'rocket',  desc: 'Cohete explosivo que daña en área.' }
 };
 const skillImg = {};
 for (const n of ['baculo', 'arco_1', 'arco_2']) { const i = new Image(); i.src = 'assets/skills/' + n + '.png'; skillImg[n] = i; }
@@ -84,6 +85,24 @@ const SKILL_FN = {
     P.x += d.dx * dist; P.y += d.dy * dist; P.inv = Math.max(P.inv, 0.25);
     sfxBeep(900, 0.08, 'sawtooth'); shake = Math.max(shake, 0.1);
   },
+  jankenpon(L) {
+    const d = aimDir(260), pick = Math.floor(Math.random() * 3), names = ['¡Piedra!', '¡Papel!', '¡Tijera!'], cols = ['#ffd27a', '#8ee08e', '#8ec8ff'];
+    addText(P.x, P.y - 48, names[pick], cols[pick], 1.4); P.a.punch = 0.3;
+    if (pick === 0) {          // piedra: puñetazo único muy fuerte
+      const t = nearest(200), dmg = 40 + L * 14;
+      fx.push({ k: 'fist', x: P.x + d.dx * 40, y: P.y + d.dy * 40 - 8, t: 0.25, max: 0.25, r: 40 });
+      if (t) { hurtEnemy(t, dmg, d.dx, d.dy, 380); shake = Math.max(shake, 0.15); }
+    } else if (pick === 1) {   // papel: palmada en área
+      const R = 105 + L * 8; fx.push({ k: 'ring', x: P.x, y: P.y, t: 0.35, max: 0.35, r: R });
+      for (const e of enemies) if (!e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) hurtEnemy(e, 20 + L * 7, e.x - P.x, e.y - P.y, 260);
+    } else {                   // tijera: dos tajos seguidos al frente
+      for (let i = 0; i < 2; i++) pending.push({ t: i * 0.12, fn: () => {
+        fx.push({ k: 'katana', x: P.x, y: P.y - 10, a: d.a + (i ? 0.25 : -0.25), len: 170, t: 0.2, max: 0.2 });
+        for (const e of enemies) if (!e.dead && inLine(e, P.x, P.y, d.dx, d.dy, 170, 80)) hurtEnemy(e, 17 + L * 6, d.dx, d.dy, 150);
+        sfxBeep(700, 0.05, 'sawtooth'); } });
+    }
+    sfxBeep(350, 0.08, 'square');
+  },
   lanzacohetes(L) {
     const d = aimDir(500);
     P.a.ki = 0.3;
@@ -94,17 +113,21 @@ const SKILL_FN = {
 function useSkill(i) {
   if (!P || state !== 'play' || !P.skills) return;
   const s = P.skills[i]; if (!s || P.scd[s.id] > 0) return;
+  const cost = SKILLS[s.id].cost || 0;
+  if (P.ki < cost) { if (!P.kiWarn || time - P.kiWarn > 0.8) { P.kiWarn = time; addText(P.x, P.y - 40, 'Ki insuficiente', '#8ec8ff'); } return; }
+  P.ki -= cost;
   SKILL_FN[s.id](s.lv);
   P.scd[s.id] = SKILLS[s.id].cd * P.cdMul;
   P.scdMax = P.scdMax || {}; P.scdMax[s.id] = P.scd[s.id];
 }
 function explode(x, y, R, dmg) {
   fx.push({ k: 'boom', x, y, r: R, t: 0.35, max: 0.35 }); burst(x, y, '#ffb347', 16, 260); shake = Math.max(shake, 0.25);
-  for (const e of enemies) if (!e.dead && (e.x - x) ** 2 + (e.y - y) ** 2 < (R + e.r) ** 2) hurtEnemy(e, dmg, e.x - x, e.y - y, 300);
+  for (const e of enemies) if (!e.dead && (e.x - x) ** 2 + (e.y - y) ** 2 < (R + e.r) ** 2) hurtEnemy(e, dmg, e.x - x, e.y - y, 300, true);
   sfxBeep(90, 0.2, 'sawtooth');
 }
 function updateSkills(dt) {
   if (!P.skills) return;
+  P.ki = Math.min(P.kiMax, P.ki + P.kiRegen * dt);
   P.skills.forEach((s, i) => {
     if (P.scd[s.id] > 0) P.scd[s.id] = Math.max(0, P.scd[s.id] - dt);
     if (tapped.has('Digit' + (i + 1)) || tapped.has('Numpad' + (i + 1)) || pad.press.has([2, 3, 1, 4][i])) useSkill(i);
@@ -180,7 +203,7 @@ const SKILL_ICON = {
   staff:  '<img src="assets/skills/baculo.png" style="transform:rotate(45deg) scale(1.1)">',
   spin:   '<img src="assets/skills/baculo.png" style="transform:rotate(-30deg)"><b class="sk-sym">⟳</b>',
   boom:   '<img src="assets/skills/baculo.png" style="transform:rotate(60deg)"><b class="sk-sym">↺</b>',
-  wolf:   '<b class="sk-emoji">🐺</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>'
+  wolf:   '<b class="sk-emoji">🐺</b>', jkp: '<b class="sk-emoji">✊</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>'
 };
 function buildSkillBar() {
   const bar = document.getElementById('skillbar'); if (!bar) return;
@@ -190,8 +213,8 @@ function buildSkillBar() {
     const s = list[i], b = document.createElement('button'); b.type = 'button'; b.className = 'sk-btn';
     if (s && s.lv > 0) {
       const def = SKILLS[s.id], idx = P.skills.findIndex(x => x.id === s.id);
-      b.dataset.skill = s.id; b.title = def.name + ' · Nv ' + s.lv;
-      b.innerHTML = `<span class="sk-ico">${SKILL_ICON[def.icon] || ''}</span><span class="sk-fill"></span><span class="sk-key">${idx + 1}</span><span class="sk-lv">Nv${s.lv}</span>`;
+      b.dataset.skill = s.id; b.title = def.name + ' · Nv ' + s.lv + ' · ' + (def.cost || 0) + ' Ki';
+      b.innerHTML = `<span class="sk-ico">${SKILL_ICON[def.icon] || ''}</span><span class="sk-fill"></span><span class="sk-key">${idx + 1}</span><span class="sk-lv">Nv${s.lv}</span><span class="sk-cost">${def.cost || 0}</span>`;
       const fire = e => { e.preventDefault(); e.stopPropagation(); useSkill(idx); };
       b.addEventListener('pointerdown', fire);
     } else if (s) { b.classList.add('locked'); b.innerHTML = '<span class="sk-ico"><b class="sk-emoji">🔒</b></span>'; b.title = 'Consigue otra copia en el gacha'; }
@@ -206,6 +229,7 @@ function updateSkillBar() {
     const id = b.dataset.skill, rem = P.scd[id] || 0, mx = (P.scdMax && P.scdMax[id]) || SKILLS[id].cd * P.cdMul;
     const p = rem > 0 ? clamp(rem / mx, 0, 1) : 0;
     b.style.setProperty('--p', (p * 360).toFixed(1) + 'deg');
-    b.classList.toggle('ready', rem <= 0);
+    b.classList.toggle('ready', rem <= 0 && P.ki >= (SKILLS[id].cost || 0));
+    b.classList.toggle('nok', P.ki < (SKILLS[id].cost || 0));
   }
 }

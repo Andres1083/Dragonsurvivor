@@ -3,10 +3,10 @@
 const UPG = [
   { id: 'punch', name: () => 'Puño de hierro', tag: 'Ataque', desc: l => l === 0 ? '' : l >= 3 ? 'Más daño y alcance; con nivel 4 pegas dos veces seguidas.' : 'Más daño, alcance y velocidad del puñetazo.', get: () => P.w.punch, max: WEAPON_MAX, apply() { P.w.punch++; } },
   { id: 'kick', name: () => 'Patada giratoria', tag: 'Ataque', desc: () => 'Golpea a todos a tu alrededor. Más daño y radio; nivel 5 repite la patada.', get: () => P.w.kick, max: WEAPON_MAX, apply() { P.w.kick++; } },
-  { id: 'ki', name: () => P.w.ki ? 'Onda de energía' : 'Onda de energía (nueva)', tag: 'Ataque', desc: () => P.w.ki ? 'Más daño y más ondas a la vez.' : 'Lanza una onda de energía al enemigo más cercano.', get: () => P.w.ki, max: WEAPON_MAX, apply() { P.w.ki++; } },
+  { id: 'ki', only: () => !!getCurrentCharacter().energy, name: () => P.w.ki ? 'Onda de energía' : 'Onda de energía (nueva)', tag: 'Ataque', desc: () => P.w.ki ? 'Más daño y más ondas a la vez.' : 'Lanza una onda de energía al enemigo más cercano.', get: () => P.w.ki, max: WEAPON_MAX, apply() { P.w.ki++; } },
   { id: 'hp', name: () => 'Vigor', tag: 'Cuerpo', desc: () => '+25 vida máxima y te cura 25.', get: () => 0, max: 99, apply() { P.maxHp += 25; P.hp = Math.min(P.maxHp, P.hp + 25); } },
   { id: 'speed', name: () => 'Pies ligeros', tag: 'Cuerpo', desc: () => '+10% velocidad al correr.', get: () => 0, max: 99, apply() { P.speed *= 1.10; } },
-  { id: 'power', name: () => 'Entrenamiento', tag: 'Cuerpo', desc: () => '+12% de daño a todos tus ataques.', get: () => 0, max: 99, apply() { P.dmgMul *= 1.12; } },
+  { id: 'power', name: () => 'Entrenamiento', tag: 'Cuerpo', desc: () => '+12% de daño físico y de energía.', get: () => 0, max: 99, apply() { P.dmgMul *= 1.12; P.enMul *= 1.12; } },
   { id: 'haste', name: () => 'Respiración', tag: 'Cuerpo', desc: () => '-10% tiempo de recarga de ataques.', get: () => 0, max: 99, apply() { P.cdMul *= 0.9; } },
   { id: 'magnet', name: () => 'Imán de esencia', tag: 'Cuerpo', desc: () => '+35% radio para recoger experiencia.', get: () => 0, max: 99, apply() { P.magnet *= 1.35; } },
   { id: 'regen', name: () => 'Meditación', tag: 'Cuerpo', desc: () => 'Recuperas +0,6 de vida por segundo.', get: () => 0, max: 99, apply() { P.regen += 0.6; } },

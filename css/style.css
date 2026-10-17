@@ -237,3 +237,8 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
 .skill-row i { grid-column: 1 / -1; font-style: normal; color: #8aa0c0; font-size: 12px; }
 .skill-row .lv { color: #ffe566; font-weight: 700; }
 .skill-row.off { opacity: .6; }
+
+.over-sprite { height: 110px; width: auto; image-rendering: pixelated; margin: 4px 0; }
+.over-sprite[hidden] { display: none; }
+.sk-cost { position:absolute; left:0; right:0; bottom:0; text-align:center; font-size:10px; font-weight:700; color:#9fd4ff; background:rgba(5,10,30,.55); }
+.sk-btn.nok .sk-ico { opacity:.45; }

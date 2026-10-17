@@ -30,7 +30,7 @@ function drawHero() {
   ctx.save(); ctx.translate(P.x, P.y);
 
   ctx.fillStyle = 'rgba(0,0,0,.25)';
-  ctx.beginPath(); ctx.ellipse(0, 14, 13, 5, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 7, 12, 4, 0, 0, TAU); ctx.fill();
 
   const bob = moving && P.a.punch <= 0 && P.a.kick <= 0 && P.a.ki <= 0
     ? Math.abs(sw) * -2.5

@@ -8,8 +8,9 @@ const CHARACTERS = {
     rarity: 'R',
     description: 'El pequeño guerrero saiyajin. Equilibrado y listo para pelear.',
     unlocked: true,
+    energy: false,   // sin ataques de energía (la onda de ki queda para versiones posteriores)
     startCopies: 1,
-    skills: ['baculo_sagrado', 'baculo_giro', 'baculo_boomerang'],
+    skills: ['baculo_sagrado', 'baculo_giro', 'baculo_boomerang', 'jankenpon'],
     portrait: 'assets/personajes/goku_kid/idle_01.png',
     // valores base (antes de mejoras)
     base: {
@@ -17,7 +18,10 @@ const CHARACTERS = {
       fuerza: 1.0,
       velocidad: 1.0,
       magnet: 1.0,
-      recarga: 1.0
+      recarga: 1.0,
+      evasion: 0.04,   // primera aparición: esquiva poco
+      energia: 0.5,    // todavía no domina el ki: es físico/tanque
+      ki: 100
     }
   },
   yamcha: {
@@ -26,9 +30,10 @@ const CHARACTERS = {
     rarity: 'SR',
     description: 'Bandido del desierto y maestro del Puño del Colmillo de Lobo. Más fuerte, algo más lento.',
     unlocked: false,           // se consigue con copias del gacha
+    energy: true,
     skills: ['rogafufuken', 'katana', 'lanzacohetes'],
     portrait: 'assets/enemigos/yamcha/idle.png',
-    base: { hp: 115, fuerza: 1.1, velocidad: 0.95, magnet: 1.0, recarga: 1.0 }
+    base: { hp: 115, fuerza: 1.1, velocidad: 0.95, magnet: 1.0, recarga: 1.0, evasion: 0.03, energia: 1.0, ki: 100 }
   }
 };
 
@@ -38,7 +43,10 @@ const STAT_DEFS = [
   { key: 'fuerza',    label: 'Fuerza',      unit: '×',  perLevel: 0.06, max: 15, costBase: 50 },
   { key: 'velocidad', label: 'Velocidad',   unit: '×',  perLevel: 0.04, max: 12, costBase: 45 },
   { key: 'magnet',    label: 'Imán XP',     unit: '×',  perLevel: 0.08, max: 10, costBase: 35 },
-  { key: 'recarga',   label: 'Recarga',     unit: '×',  perLevel: -0.03, max: 10, costBase: 55 } // menor = mejor (cdMul)
+  { key: 'recarga',   label: 'Recarga',     unit: '×',  perLevel: -0.03, max: 10, costBase: 55 }, // menor = mejor (cdMul)
+  { key: 'evasion',   label: 'Evasión',     unit: '%',  perLevel: 0.01, max: 10, costBase: 60, def: 0 },
+  { key: 'energia',   label: 'Energía',     unit: '×',  perLevel: 0.06, max: 15, costBase: 50 },   // daño de ataques de energía
+  { key: 'ki',        label: 'Ki',          unit: '',   perLevel: 8,    max: 10, costBase: 40, def: 100 }  // reserva que gastan las habilidades
 ];
 
 let currentCharacterId = 'goku_kid';
@@ -75,7 +83,7 @@ function getEffectiveStats(charId) {
   const up = getUpgrades(charId);
   const st = {};
   STAT_DEFS.forEach(s => {
-    const b = base[s.key] != null ? base[s.key] : (s.key === 'hp' ? 100 : 1);
+    const b = base[s.key] != null ? base[s.key] : (s.def != null ? s.def : s.key === 'hp' ? 100 : 1);
     st[s.key] = b + up[s.key] * s.perLevel;
   });
   return st;

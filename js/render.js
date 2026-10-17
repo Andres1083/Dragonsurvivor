@@ -175,6 +175,10 @@ function drawHUD() {
   ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(x + 12, y + 44, panelW - 24, 5);
   ctx.fillStyle = '#5fd4ff'; ctx.fillRect(x + 12, y + 44, (panelW - 24) * clamp(P.xp / P.next, 0, 1), 5);
 
+  { const ky = y + h + 5, kw = panelW * 0.7;
+    ctx.fillStyle = 'rgba(10,18,28,.55)'; ctx.fillRect(x, ky, kw, 12);
+    ctx.fillStyle = '#3aa0ff'; ctx.fillRect(x + 2, ky + 2, (kw - 4) * clamp(P.ki / P.kiMax, 0, 1), 8);
+    ctx.font = 'bold 9px "Trebuchet MS",sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText('KI ' + Math.floor(P.ki), x + 6, ky + 9.5); }
   ctx.textAlign = 'center'; ctx.font = 'bold 26px "Trebuchet MS",sans-serif';
   ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.fillStyle = '#fff';
   ctx.strokeText(fmtTime(time), W / 2, 36); ctx.fillText(fmtTime(time), W / 2, 36);

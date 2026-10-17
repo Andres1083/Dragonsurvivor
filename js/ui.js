@@ -47,6 +47,7 @@ function gameOver() {
     `<br>Zeni ganado: <b>+${runZeni}</b> · Total: <b>${getZeni()}</b>` +
     (newBest ? '<br>¡Nuevo récord!' : '<br>Récord: ' + fmtTime(best));
   setState('over');
+  playDeathAnim();
   refreshBest();
   refreshZeni();
 }
@@ -79,7 +80,8 @@ function togglePause() {
 }
 
 function fmtStat(key, val) {
-  if (key === 'hp') return String(Math.round(val));
+  if (key === 'hp' || key === 'ki') return String(Math.round(val));
+  if (key === 'evasion') return Math.round(val * 100) + '%';
   if (key === 'recarga') return '×' + val.toFixed(2); // menor = mejor
   return '×' + val.toFixed(2);
 }
@@ -87,7 +89,7 @@ function fmtStat(key, val) {
 function statBarPct(key, val, upLv, def) {
   // barra visual 0–100 relativa al máximo posible
   const base = (CHARACTERS[selectedCharId] || {}).base || {};
-  const b = base[key] != null ? base[key] : (key === 'hp' ? 100 : 1);
+  const b = base[key] != null ? base[key] : (def.def != null ? def.def : key === 'hp' ? 100 : 1);
   const maxV = b + def.max * def.perLevel;
   if (key === 'recarga') {
     // recarga baja es mejor: invertir visual
@@ -240,4 +242,15 @@ function menuInput() {
   bs.forEach((b, i) => b.classList.toggle('sel', i === mSel));
   if (ok) bs[mSel].click();
   if (state === 'over' && tapped.has('KeyR')) startRun();
+}
+
+/* Goku cae y queda tendido en la pantalla de "Has caído" */
+let deathTimer = null;
+function playDeathAnim() {
+  const img = document.getElementById('over-sprite'); if (!img) return;
+  clearInterval(deathTimer);
+  if (!P || P.charId !== 'goku_kid') { img.hidden = true; return; }
+  const frames = [1, 2, 3].map(i => 'assets/personajes/goku_kid/death_' + i + '.png');
+  let i = 0; img.hidden = false; img.src = frames[0];
+  deathTimer = setInterval(() => { i++; if (i >= frames.length) { clearInterval(deathTimer); return; } img.src = frames[i]; }, 420);
 }

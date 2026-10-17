@@ -44,7 +44,7 @@ function update(dt) {
   // ondas de energía
   for (const s of shots) {
     s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
-    for (const e of enemies) { if (e.dead || s.hit.has(e) || (e.x - s.x) ** 2 + (e.y - s.y) ** 2 > (e.r + 10) ** 2) continue; s.hit.add(e); hurtEnemy(e, s.dmg, s.vx, s.vy, 70); if (s.pierce-- <= 0) { s.life = 0; break; } }
+    for (const e of enemies) { if (e.dead || s.hit.has(e) || (e.x - s.x) ** 2 + (e.y - s.y) ** 2 > (e.r + 10) ** 2) continue; s.hit.add(e); hurtEnemy(e, s.dmg, s.vx, s.vy, 70, true); if (s.pierce-- <= 0) { s.life = 0; break; } }
   }
   shots = shots.filter(s => s.life > 0);
   // balas enemigas

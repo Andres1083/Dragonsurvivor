@@ -78,9 +78,9 @@ function spawnLogic(dt) {
 /* ---------- daño, efectos ---------- */
 function addText(x, y, s, col, size) { texts.push({ x, y, s, col, t: 0.8, size: size || 1 }); }
 function burst(x, y, col, n, sp) { for (let i = 0; i < n; i++) { const a = Math.random() * TAU, v = rnd(sp * 0.3, sp); parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rnd(0.25, 0.5), max: 0.5, col, r: rnd(2, 4) }); } }
-function hurtEnemy(e, dmg, kx, ky, kb) {
+function hurtEnemy(e, dmg, kx, ky, kb, energy) {
   if (e.dead) return;
-  dmg *= P.dmgMul; e.hp -= dmg; e.flash = 0.1;
+  dmg *= energy ? P.enMul : P.dmgMul; e.hp -= dmg; e.flash = 0.1;
   const m = Math.hypot(kx, ky) || 1; const resist = e.type === 'boss' ? 0.12 : e.type === 'bear' ? 0.5 : 1;
   e.kx += kx / m * kb * resist; e.ky += ky / m * kb * resist;
   addText(e.x + rnd(-8, 8), e.y - e.r - 6, String(Math.round(dmg)), '#fff4b0');
@@ -121,6 +121,7 @@ function killEnemy(e) {
 }
 function hurtPlayer(d) {
   if (P.inv > 0 || state !== 'play') return;
+  if (Math.random() < P.evasion) { P.inv = 0.3; addText(P.x, P.y - 30, 'Esquiva', '#9fe8ff'); return; }
   d *= 1 - P.armor; P.hp -= d; P.inv = 0.55; shake = Math.max(shake, 0.18);
   addText(P.x, P.y - 30, '-' + Math.round(d), '#ff5a5a', 1.2); burst(P.x, P.y, '#ff6a6a', 8, 160); sfxBeep(180, 0.12, 'square');
   if (P.hp <= 0) gameOver();

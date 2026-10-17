@@ -33,6 +33,8 @@ function newRun() {
     dmgMul: st.fuerza || 1,
     cdMul: cdMul,
     magnet: st.magnet || 1,
+    evasion: st.evasion || 0, enMul: st.energia != null ? st.energia : 1,
+    kiMax: st.ki || 100, ki: st.ki || 100, kiRegen: (st.ki || 100) * 0.05,
     regen: 0, armor: 0, water: false,
     a: { punch: 0, kick: 0, ki: 0 }, aim: [1, 0],
     w: { punch: 1, kick: 1, ki: 0 },
