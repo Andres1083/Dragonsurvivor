@@ -16,6 +16,7 @@ function frame(now) {
 function drawTitleBg(t) { camx = Math.sin(t * 0.1) * 300; camy = t * 20; ctx.setTransform(DPR * Z, 0, 0, DPR * Z, -camx * DPR * Z, -camy * DPR * Z); drawWorld(camx, camy, W / Z, H / Z, t); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') togglePause(); });
 refreshBest();
+refreshZeni();   // al abrir la app el título mostraba "Zeni: 0" hasta cambiar de pantalla
 requestAnimationFrame(frame);
 // para pruebas y depuración desde la consola
 window.DS = { get P() { return P; }, get state() { return state; }, startRun, get enemies() { return enemies; }, get time() { return time; }, set time(v) { time = v; } };

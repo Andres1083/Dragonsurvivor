@@ -14,7 +14,10 @@ function update(dt) {
     if (!P.w[k]) continue;
     P.cd[k] -= dt;
     if (P.cd[k] <= 0) {
-      if (k === 'punch') { if (nearest(120) || P.moving || true) doPunch(); } else if (k === 'kick') { if (nearest(160)) doKick(); else { P.cd[k] = 0.2; continue; } } else doKi();
+      // Los ataques solo salen si hay un enemigo al alcance real del golpe (si no, se reintenta pronto sin gastar la recarga)
+      if (k === 'punch') { if (nearest(30 + 44 + P.w.punch * 4)) doPunch(); else { P.cd[k] = 0.1; continue; } }
+      else if (k === 'kick') { if (nearest(82 + P.w.kick * 9)) doKick(); else { P.cd[k] = 0.1; continue; } }
+      else { if (nearest(480)) doKi(); else { P.cd[k] = 0.15; continue; } }
       P.cd[k] = cdv[k] * P.cdMul * (k === 'punch' ? Math.max(0.45, 1 - P.w.punch * 0.06) : k === 'kick' ? Math.max(0.55, 1 - P.w.kick * 0.05) : Math.max(0.5, 1 - P.w.ki * 0.05));
     }
   }
