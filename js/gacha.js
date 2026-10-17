@@ -160,16 +160,55 @@ function renderGachaScreen() {
   if (res && !gachaBusy && !res.dataset.keep) res.innerHTML = '';
 }
 
+/* ---------- animaciones (sprites en assets/gacha/anim) ---------- */
+const GACHA_ANIM = GACHA_PATH + 'anim/';
+const pad2 = n => String(n).padStart(2, '0');
+const GACHA_SEQ = {
+  activate: Array.from({ length: 8 }, (_, i) => GACHA_ANIM + 'activate_' + pad2(i + 1) + '.png'),   // luz y movimiento
+  drop:     Array.from({ length: 10 }, (_, i) => GACHA_ANIM + 'drop_' + pad2(i + 1) + '.png'),      // salida de la cápsula
+  spin: {
+    silver: Array.from({ length: 8 }, (_, i) => GACHA_ANIM + 'ticket_silver_spin_' + pad2(i + 1) + '.png'),
+    gold:   Array.from({ length: 9 }, (_, i) => GACHA_ANIM + 'ticket_gold_spin_' + pad2(i + 1) + '.png')
+  }
+};
+const GACHA_IDLE = GACHA_PATH + 'machine_idle_ui.png';
+const GACHA_REWARD_ICON = {
+  silver: GACHA_ANIM + 'ticket_silver_glow.png',
+  gold: GACHA_ANIM + 'ticket_gold_glow.png',
+  legendary: GACHA_PATH + 'ticket_legendary_ui.png'
+};
+// precarga: así el cambio de frame no parpadea
+(function preloadGacha() {
+  const all = [GACHA_IDLE, ...GACHA_SEQ.activate, ...GACHA_SEQ.drop, ...GACHA_SEQ.spin.silver, ...GACHA_SEQ.spin.gold, ...Object.values(GACHA_REWARD_ICON)];
+  window._gachaPre = all.map(src => { const im = new Image(); im.src = src; return im; });
+})();
+
+let gachaToken = 0; // al salir/reabrir se invalida la animación en curso
+
 function setMachineFrame(frame) {
   const img = document.getElementById('gacha-machine');
   if (!img) return;
-  const map = {
-    idle: 'machine_idle_ui.png',
-    glow: 'machine_glow_ui.png',
-    drop: 'machine_drop_ui.png',
-    end: 'machine_end_ui.png'
+  img.src = frame === 'idle' ? GACHA_IDLE : frame;
+}
+
+/* reproduce una lista de imágenes, una cada `ms`, y llama a done() al terminar */
+function playSeq(tok, srcs, ms, show, done, onFrame) {
+  let i = 0;
+  const tick = () => {
+    if (tok !== gachaToken) return;
+    if (i >= srcs.length) { if (done) done(); return; }
+    show(srcs[i]);
+    if (onFrame) onFrame(i);
+    i++;
+    setTimeout(tick, ms);
   };
-  img.src = GACHA_PATH + (map[frame] || map.idle);
+  tick();
+}
+
+function rewardHtml(r) {
+  const icon = r.kind === 'ticket' && GACHA_REWARD_ICON[r.ticket]
+    ? `<img class="gacha-reward-ticket" src="${GACHA_REWARD_ICON[r.ticket]}" alt="">` : '';
+  return `${icon}<span class="good">¡${r.label}!</span>`;
 }
 
 function runGachaPull() {
@@ -187,38 +226,62 @@ function runGachaPull() {
   }
   if (!payForPull(gachaSelected, can.pay)) return;
 
+  const tok = ++gachaToken;
   gachaBusy = true;
-  renderGachaScreen();
+  renderGachaScreen();               // muestra el saldo ya descontado
   const res = document.getElementById('gacha-result');
   if (res) { res.dataset.keep = ''; res.innerHTML = '<span class="muted">La cápsula gira…</span>'; }
 
   const def = GACHA_TYPES[gachaSelected];
-  const frames = ['glow', 'glow', 'drop', 'end'];
-  let i = 0;
-  setMachineFrame('glow');
+  // el premio se aplica ya (si el jugador sale a mitad de la animación no lo pierde); solo se muestra al final
+  const reward = resolveReward(pickWeighted(def.table));
+  const mach = document.getElementById('gacha-machine');
+  const fx = document.getElementById('gacha-ticket-fx');
+  const showMachine = src => { if (mach) mach.src = src; };
+  const beep = (f, d, t) => { try { sfxBeep(f, d, t); } catch (e) {} };
 
-  const step = () => {
-    if (i < frames.length) {
-      setMachineFrame(frames[i++]);
-      setTimeout(step, 280);
-      return;
-    }
-    const reward = resolveReward(pickWeighted(def.table));
-    if (res) {
-      res.dataset.keep = '1';
-      res.innerHTML = `<span class="good">¡${reward.label}!</span>`;
-    }
-    try { sfxBeep(660, 0.08, 'square'); } catch (e) {}
+  const finish = () => {
+    if (tok !== gachaToken) return;
+    if (mach) mach.classList.remove('shake');
+    if (res) { res.dataset.keep = '1'; res.innerHTML = rewardHtml(reward); }
+    beep(660, 0.08, 'square');
     gachaBusy = false;
-    setMachineFrame('idle');
     refreshZeni();
     renderGachaScreen();
+    // deja la cápsula afuera un momento y vuelve al reposo
+    setTimeout(() => { if (tok === gachaToken && !gachaBusy) setMachineFrame('idle'); }, 1000);
   };
-  setTimeout(step, 320);
+  const drop = () => {
+    if (mach) mach.classList.remove('shake');
+    playSeq(tok, GACHA_SEQ.drop, 100, showMachine, finish, i => { if (i === 4) beep(520, 0.1, 'triangle'); });
+  };
+  const activate = () => {
+    beep(300, 0.18, 'sawtooth');
+    playSeq(tok, GACHA_SEQ.activate, 90, showMachine, drop, i => { if (mach) mach.classList.toggle('shake', i >= 4); });
+  };
+
+  // 1) el ticket gira y entra en la máquina
+  const spin = GACHA_SEQ.spin[def.ticketKey];
+  if (fx) {
+    fx.hidden = false;
+    fx.classList.remove('fly'); void fx.offsetWidth; fx.classList.add('fly');
+    const hide = () => { fx.hidden = true; fx.classList.remove('fly'); };
+    if (spin) {
+      playSeq(tok, spin, 76, src => { fx.src = src; }, () => { hide(); activate(); });
+    } else {                           // ticket mítico: sin hoja de giro, entra tal cual
+      fx.src = GACHA_REWARD_ICON[def.ticketKey] || '';
+      setTimeout(() => { if (tok !== gachaToken) return; hide(); activate(); }, 640);
+    }
+  } else {
+    activate();
+  }
 }
 
 function openGacha() {
+  gachaToken++;
   gachaBusy = false;
+  const _fx = document.getElementById('gacha-ticket-fx'); if (_fx) { _fx.hidden = true; _fx.classList.remove('fly'); }
+  const _m = document.getElementById('gacha-machine'); if (_m) _m.classList.remove('shake');
   gachaSelected = 'normal';
   setMachineFrame('idle');
   const res = document.getElementById('gacha-result');

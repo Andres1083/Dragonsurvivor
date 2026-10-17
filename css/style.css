@@ -147,10 +147,28 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
   align-items: flex-start; width: min(920px, 96vw);
 }
 .gacha-machine-wrap { text-align: center; min-width: 160px; }
+.gacha-stage { position: relative; display: inline-block; }
 .gacha-machine {
-  width: auto; height: min(280px, 42vh); image-rendering: auto;
+  width: auto; height: min(330px, 46vh); image-rendering: auto;
   filter: drop-shadow(0 8px 16px rgba(0,0,0,.45));
 }
+.gacha-machine.shake { animation: gShake .09s linear infinite; }
+@keyframes gShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+/* ticket que gira y "entra" en la máquina al invocar */
+.gacha-ticket-fx {
+  position: absolute; left: 50%; top: 0; width: 76px; height: auto; z-index: 2;
+  transform: translateX(-50%); pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+}
+.gacha-ticket-fx[hidden] { display: none; }
+.gacha-ticket-fx.fly { animation: gTicketFly .64s ease-in forwards; }
+@keyframes gTicketFly {
+  0%   { transform: translate(-50%, -34px) scale(1.2); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translate(-50%, 30px) scale(.6); opacity: 0; }
+}
+.gacha-result img.gacha-reward-ticket { height: 34px; width: auto; vertical-align: middle; margin-right: 8px; animation: gPop .35s ease-out; }
+@keyframes gPop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
 .gacha-result {
   min-height: 28px; margin-top: 8px; font-weight: 700; font-size: 18px;
   color: var(--gold); text-shadow: 0 2px 0 #5a4010;
@@ -188,5 +206,6 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
 .gacha-opt:disabled { opacity: .55; cursor: not-allowed; }
 
 @media (max-width: 600px) {
-  .gacha-machine { height: min(220px, 36vh); }
+  .gacha-machine { height: min(260px, 38vh); }
+  .gacha-ticket-fx { width: 64px; }
 }
