@@ -171,6 +171,7 @@ function renderCharDetail() {
     sk += `<div class="skill-list"><b>Pasivas</b> <span class="small">· ★ ${cp}</span>` +
       c.passives.map(p => `<div class="skill-row${cp >= p.stars ? '' : ' off'}"><span>${cp >= p.stars ? '' : '🔒 '}${p.name}</span><span class="lv">${'★'.repeat(p.stars)}</span><i>${p.desc}</i></div>`).join('') + `</div>`;
   }
+  if (typeof gearHtml === 'function') sk += gearHtml(c.id);
   panel.innerHTML =
     `<div class="hd">` +
       (c.portrait ? `<img src="${c.portrait}" alt="">` : '') +
@@ -182,7 +183,8 @@ function renderCharDetail() {
       `<button class="btn" id="b-select-char">Elegir compañero</button>` +
     `</div>`;
 
-  panel.querySelectorAll('.btn-upg').forEach(btn => {
+  if (typeof bindGear === 'function') bindGear(panel, c.id, renderCharDetail);
+  panel.querySelectorAll('.btn-upg[data-stat]').forEach(btn => {
     btn.onclick = () => {
       const key = btn.getAttribute('data-stat');
       const res = tryUpgrade(c.id, key);

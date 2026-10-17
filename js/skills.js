@@ -37,6 +37,7 @@ function applyPassives() {
     if (p.id === 'kireserva') { P.kiMax = Math.round(P.kiMax * 1.2); P.ki = P.kiMax; P.kiRegen *= 1.2; }
     if (p.id === 'evade') P.evasion += 0.05;
   }
+  if (typeof applyGear === 'function') applyGear();
   P.idle = 0; P.repelT = 3; capsT = 30;
 }
 let capsT = 30;
