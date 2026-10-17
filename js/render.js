@@ -25,6 +25,13 @@ function drawEnemy(e) {
       limb(-8, 5, -9 + w * 4, 12, 4, C('#6d7280')); limb(6, 5, 7 - w * 4, 12, 4, C('#6d7280'));
       ctx.fillStyle = C('#8a90a0'); ctx.beginPath(); ctx.ellipse(0, 0, 13, 7.5, 0, 0, TAU); ctx.fill();
     }
+  } else if (e.type === 'wwolf' && wwolfFrames[0].complete && wwolfFrames[0].naturalWidth) {
+    const i = e.frame != null ? e.frame : WWOLF_WALK[Math.floor(e.ph * 1.1) % WWOLF_WALK.length];
+    const img = wwolfFrames[i], t = 54 / s;
+    ctx.imageSmoothingEnabled = false;
+    if (fl) ctx.filter = 'brightness(2.4)';
+    ctx.drawImage(img, -t / 2, -t + 9, t, t);
+    ctx.filter = 'none'; ctx.imageSmoothingEnabled = true;
   } else if (e.type === 'raptor') {
     limb(-4, 5, -5 + w * 5, 13, 3.5, C('#b5762a')); limb(4, 5, 5 - w * 5, 13, 3.5, C('#b5762a'));
     ctx.fillStyle = C('#d9892f'); ctx.beginPath(); ctx.moveTo(-6, 3); ctx.quadraticCurveTo(-24, 6 + w * 3, -26, -2); ctx.quadraticCurveTo(-14, -2, -8, -8); ctx.fill();

@@ -30,6 +30,7 @@ function update(dt) {
     e.ph += dt * 8; e.flash = Math.max(0, e.flash - dt);
     let mv = 1, contact = true;
     if (e.type === 'bandit') { mv = soldierAI(e, dt, d); contact = false; }
+    else if (e.type === 'wwolf') { mv = wwolfAI(e, dt, d); contact = false; }
     e.x += (dx / d * e.spd * mv + e.kx) * dt; e.y += (dy / d * e.spd * mv + e.ky) * dt;
     e.kx *= Math.pow(0.02, dt); e.ky *= Math.pow(0.02, dt);
     if (Math.abs(dx) > 4) e.face = dx > 0 ? 1 : -1;
@@ -106,4 +107,18 @@ function soldierAI(e, dt, d) {
   if (d < meleeR) { e.st = 'melee'; e.stT = 0.55; e.hit = false; return 0; }
   if (d < 270 && d > 110 && e.cd <= 0) { e.st = 'aim'; e.stT = 0.6; e.fired = false; return 0; }
   return d < 250 && d > 110 ? 0.35 : 1;
+}
+
+/* IA del lobo blanco: corre hacia Goku y, al tenerlo cerca, prepara la mordida, salta y muerde (daño en el frame de la dentellada). */
+function wwolfAI(e, dt, d) {
+  e.stT -= dt; e.cd -= dt;
+  if (e.st === 'bite') {
+    const t = 0.55 - e.stT;                       // 0..0.55
+    e.frame = t < 0.18 ? 4 : t < 0.3 ? 5 : 6;
+    if (!e.hit && t >= 0.3) { e.hit = true; if (d < e.r + P.r + 26) hurtPlayer(e.dmg * 1.2); }
+    if (e.stT <= 0) { e.st = 'walk'; e.cd = 0.7; e.frame = null; }
+    return t >= 0.18 && t < 0.4 ? 2.4 : 0;        // pequeño salto hacia delante al morder
+  }
+  if (d < e.r + P.r + 20 && e.cd <= 0) { e.st = 'bite'; e.stT = 0.55; e.hit = false; return 0; }
+  return 1;
 }

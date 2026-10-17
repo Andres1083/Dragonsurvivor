@@ -9,6 +9,10 @@ const wolfWalk = [];
     wolfWalk.push(img);
   }
 })();
+/* Lobo blanco-gris (pixel art 32x32, mira a la derecha): ciclo de caminar y mordida (frames 5-7 = preparar, saltar, morder) */
+const wwolfFrames = [];
+for (let i = 1; i <= 14; i++) { const img = new Image(); img.src = 'assets/enemigos/lobo_blanco/f' + String(i).padStart(2, '0') + '.png'; wwolfFrames.push(img); }
+const WWOLF_WALK = [0, 1, 2, 3, 7, 8, 9, 12, 13];
 const wolfIdle = new Image(); wolfIdle.src = 'assets/enemigos/lobo/idle.png';
 
 /* Soldado (antes "Bandido"/leñador): ciclo de 4 frames, el sprite mira a la derecha */
@@ -45,6 +49,7 @@ const coinFrames = [];
 /* ---------- enemigos ---------- */
 const ETYPES = {
   wolf:   { name: 'Lobo', hp: 14, spd: 118, dmg: 6, r: 12, xp: 1, from: 0 },
+  wwolf:  { name: 'Lobo blanco', hp: 38, spd: 108, dmg: 9, r: 13, xp: 2, from: 70 },
   bandit: { name: 'Soldado', hp: 26, spd: 80, dmg: 8, r: 16, xp: 2, from: 40, barY: 74 },
   raptor: { name: 'Raptor', hp: 22, spd: 150, dmg: 8, r: 13, xp: 2, from: 100 },
   bear:   { name: 'Oso', hp: 95, spd: 58, dmg: 14, r: 21, xp: 6, from: 160 },
@@ -62,7 +67,7 @@ function spawnLogic(dt) {
     spawnT = Math.max(0.1, 0.85 - time / 260);
     const n = 1 + Math.floor(time / 110);
     for (let i = 0; i < n && enemies.length < 260; i++) {
-      const pool = ['wolf']; for (const t of ['bandit', 'raptor', 'bear']) if (time >= ETYPES[t].from) pool.push(t);
+      const pool = ['wolf']; for (const t of ['wwolf', 'bandit', 'raptor', 'bear']) if (time >= ETYPES[t].from) pool.push(t);
       let t = pool[Math.floor(Math.random() * pool.length)]; if (t === 'bear' && Math.random() < 0.6) t = 'wolf';
       spawnEnemy(t);
     }
@@ -85,13 +90,13 @@ function hurtEnemy(e, dmg, kx, ky, kb) {
 function zeniDropChance(type) {
   if (type === 'boss') return 1;
   if (type === 'bear') return 0.40;
-  if (type === 'bandit' || type === 'raptor') return 0.22;
+  if (type === 'bandit' || type === 'raptor' || type === 'wwolf') return 0.22;
   return 0.12; // lobo y similares
 }
 function zeniFor(type) {
   if (type === 'boss') return 50;
   if (type === 'bear') return 6 + (Math.random() < 0.5 ? 2 : 0);
-  if (type === 'bandit' || type === 'raptor') return 2 + (Math.random() < 0.4 ? 1 : 0);
+  if (type === 'bandit' || type === 'raptor' || type === 'wwolf') return 2 + (Math.random() < 0.4 ? 1 : 0);
   return 1 + (Math.random() < 0.3 ? 1 : 0); // lobo 1–2
 }
 function killEnemy(e) {
