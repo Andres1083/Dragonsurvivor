@@ -55,10 +55,16 @@ function update(dt) {
   const mr = 70 * P.magnet;
   for (const g of gems) {
     g.t += dt; const dx = P.x - g.x, dy = P.y - g.y, d = Math.hypot(dx, dy);
-    if (d < mr || g.pull) { g.pull = true; const v = 260 + (mr - Math.min(d, mr)) * 4 + 120; g.x += dx / (d || 1) * v * dt; g.y += dy / (d || 1) * v * dt; }
+    if (!g.capsule && (d < mr || g.pull)) { g.pull = true; const v = 260 + (mr - Math.min(d, mr)) * 4 + 120; g.x += dx / (d || 1) * v * dt; g.y += dy / (d || 1) * v * dt; }
     if (d < P.r + 10) {
       g.got = true;
-      if (g.meat) {
+      if (g.magnet || g.capsule) {
+        let r = g.magnet ? 0 : Math.random();
+        if (r < 0.5) { for (const o of gems) o.pull = true; addText(P.x, P.y - 34, '¡Imán!', '#9fe8ff', 1.3); sfxBeep(760, 0.12, 'triangle'); }
+        else if (r < 0.8) { const z = 10 + (Math.random() * 11 | 0); addZeni(z); addText(P.x, P.y - 34, '+' + z + ' Z', '#ffe566'); }
+        else { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.3); addText(P.x, P.y - 34, '+vida', '#7dffa0'); }
+        if (g.capsule) burst(g.x, g.y, '#ffffff', 10, 180);
+      } else if (g.meat) {
         P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.3);
         addText(P.x, P.y - 30, '+vida', '#7dffa0');
       } else if (g.zeni) {

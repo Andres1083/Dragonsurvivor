@@ -114,6 +114,8 @@ function killEnemy(e) {
     for (let i = 0; i < 6; i++) gems.push({ x: e.x + rnd(-50, 50), y: e.y + rnd(-50, 50), zeni: 4 + (Math.random() * 4 | 0), t: 0 });
     gems.push({ x: e.x, y: e.y + 30, v: 0, meat: true, t: 0 });
     shake = 0.5;
+  } else if (Math.random() < 0.004) {
+    gems.push({ x: e.x - 8, y: e.y, v: 0, magnet: true, t: 0 });
   } else if (Math.random() < 0.012) {
     gems.push({ x: e.x + 8, y: e.y, v: 0, meat: true, t: 0 });
   }

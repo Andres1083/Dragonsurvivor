@@ -11,6 +11,12 @@ const CHARACTERS = {
     energy: false,   // sin ataques de energía (la onda de ki queda para versiones posteriores)
     startCopies: 1,
     skills: ['baculo_sagrado', 'baculo_giro', 'baculo_boomerang', 'jankenpon'],
+    passives: [
+      { id: 'cola', stars: 2, name: 'Cola ágil', desc: '+3% de evasión.' },
+      { id: 'resist', stars: 3, name: 'Resistencia', desc: '+10% de vida máxima.' },
+      { id: 'carga', stars: 4, name: 'Carga de Ki', desc: 'Si te quedas quieto más de 1 s, el Ki se recarga ×3.' },
+      { id: 'repel', stars: 5, name: 'Aura repelente', desc: 'Cargando Ki quieto, cada 3 s empujas a los enemigos cercanos.' }
+    ],
     portrait: 'assets/personajes/goku_kid/idle_01.png',
     // valores base (antes de mejoras)
     base: {
@@ -32,6 +38,12 @@ const CHARACTERS = {
     unlocked: false,           // se consigue con copias del gacha
     energy: true,
     skills: ['rogafufuken', 'katana', 'lanzacohetes'],
+    passives: [
+      { id: 'instinto', stars: 1, name: 'Instinto de bandido', desc: '+8% de daño físico.' },
+      { id: 'ligero', stars: 2, name: 'Paso ligero', desc: '+10% de velocidad.' },
+      { id: 'kireserva', stars: 3, name: 'Reserva de Ki', desc: '+20% de Ki máximo y de recarga.' },
+      { id: 'evade', stars: 4, name: 'Reflejos', desc: '+5% de evasión.' }
+    ],
     portrait: 'assets/enemigos/yamcha/idle.png',
     base: { hp: 115, fuerza: 1.1, velocidad: 0.95, magnet: 1.0, recarga: 1.0, evasion: 0.03, energia: 1.0, ki: 100 }
   }

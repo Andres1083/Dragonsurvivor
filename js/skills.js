@@ -25,8 +25,24 @@ function equippedSkills(charId) {
 }
 
 let boomers = [], rockets = [];
+function activePassives(charId) { const ch = CHARACTERS[charId], c = getCopies(charId); return ch && ch.passives ? ch.passives.filter(p => c >= p.stars) : []; }
+function applyPassives() {
+  P.pas = {};
+  for (const p of activePassives(P.charId)) {
+    P.pas[p.id] = true;
+    if (p.id === 'cola') P.evasion += 0.03;
+    if (p.id === 'resist') { P.maxHp = Math.round(P.maxHp * 1.1); P.hp = P.maxHp; }
+    if (p.id === 'instinto') P.dmgMul *= 1.08;
+    if (p.id === 'ligero') P.speed *= 1.1;
+    if (p.id === 'kireserva') { P.kiMax = Math.round(P.kiMax * 1.2); P.ki = P.kiMax; P.kiRegen *= 1.2; }
+    if (p.id === 'evade') P.evasion += 0.05;
+  }
+  P.idle = 0; P.repelT = 3; capsT = 30;
+}
+let capsT = 30;
 function resetSkills() {
   boomers = []; rockets = [];
+  applyPassives();
   P.skills = equippedSkills(P.charId).filter(s => s.lv > 0);
   P.scd = {}; for (const s of P.skills) P.scd[s.id] = 3;   // empiezan casi listas
   buildSkillBar();
@@ -127,7 +143,19 @@ function explode(x, y, R, dmg) {
 }
 function updateSkills(dt) {
   if (!P.skills) return;
-  P.ki = Math.min(P.kiMax, P.ki + P.kiRegen * dt);
+  P.idle = P.moving ? 0 : P.idle + dt;
+  const charging = P.pas.carga && P.idle > 1;
+  P.ki = Math.min(P.kiMax, P.ki + P.kiRegen * dt * (charging ? 3 : 1));
+  if (charging) {
+    if (Math.random() < 0.5) parts.push({ x: P.x + rnd(-14, 14), y: P.y + rnd(-6, 10), vx: 0, vy: -60, life: 0.5, max: 0.5, col: '#7fd0ff', r: 2.5 });
+    if (P.pas.repel && (P.repelT -= dt) <= 0) {
+      P.repelT = 3; fx.push({ k: 'ring', x: P.x, y: P.y, t: 0.3, max: 0.3, r: 100 });
+      for (const e of enemies) { const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1; if (d < 100 + e.r) { e.kx += dx / d * 380; e.ky += dy / d * 380; } }
+    }
+  }
+  // cápsulas en el suelo: cada cierto tiempo aparece una cerca (máx. 2)
+  capsT -= dt;
+  if (capsT <= 0) { capsT = 40; if (gems.filter(g => g.capsule).length < 2) { const a = Math.random() * TAU, r = 260 + Math.random() * 160; gems.push({ x: P.x + Math.cos(a) * r, y: P.y + Math.sin(a) * r, v: 0, capsule: true, t: 0 }); } }
   P.skills.forEach((s, i) => {
     if (P.scd[s.id] > 0) P.scd[s.id] = Math.max(0, P.scd[s.id] - dt);
     if (tapped.has('Digit' + (i + 1)) || tapped.has('Numpad' + (i + 1)) || pad.press.has([2, 3, 1, 4][i])) useSkill(i);

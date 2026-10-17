@@ -166,6 +166,11 @@ function renderCharDetail() {
       c.skills.map((id, k) => { const lv = skillLevel(c.id, k), d = SKILLS[id];
         return `<div class="skill-row${lv ? '' : ' off'}"><span>${lv ? '' : '🔒 '}${d.name}</span><span class="lv">${lv ? 'Nv ' + lv + '/' + SKILL_MAX_LV : 'Copia ' + (k + 1)}</span><i>${d.desc}</i></div>`; }).join('') + `</div>`;
   }
+  if (c.passives) {
+    const cp = getCopies(c.id);
+    sk += `<div class="skill-list"><b>Pasivas</b> <span class="small">· ★ ${cp}</span>` +
+      c.passives.map(p => `<div class="skill-row${cp >= p.stars ? '' : ' off'}"><span>${cp >= p.stars ? '' : '🔒 '}${p.name}</span><span class="lv">${'★'.repeat(p.stars)}</span><i>${p.desc}</i></div>`).join('') + `</div>`;
+  }
   panel.innerHTML =
     `<div class="hd">` +
       (c.portrait ? `<img src="${c.portrait}" alt="">` : '') +

@@ -87,6 +87,21 @@ function drawEnemy(e) {
 
 function drawFx() {
   for (const g of gems) {
+    if (g.magnet) {   // imán en U roja con puntas blancas
+      const b = Math.sin(g.t * 5) * 2; ctx.lineWidth = 5; ctx.lineCap = 'butt'; ctx.strokeStyle = '#d9323c';
+      ctx.beginPath(); ctx.arc(g.x, g.y + b, 8, Math.PI, 0, true); ctx.moveTo(g.x - 8, g.y + b); ctx.lineTo(g.x - 8, g.y + b + 7); ctx.moveTo(g.x + 8, g.y + b); ctx.lineTo(g.x + 8, g.y + b + 7); ctx.stroke();
+      ctx.fillStyle = '#f2f2f2'; ctx.fillRect(g.x - 10.5, g.y + b + 6, 5, 5); ctx.fillRect(g.x + 5.5, g.y + b + 6, 5, 5);
+      continue;
+    }
+    if (g.capsule) {  // cápsula tirada en el suelo (mitad blanca, mitad azul)
+      const b = Math.sin(g.t * 3) * 1.5; shadow(g.x, g.y + 9, 10);
+      ctx.save(); ctx.translate(g.x, g.y - 4 + b); ctx.rotate(-0.5);
+      ctx.fillStyle = '#f4f6fa'; ctx.beginPath(); ctx.arc(-4, 0, 9, Math.PI / 2, Math.PI * 1.5); ctx.rect(-4, -9, 4, 18); ctx.fill();
+      ctx.fillStyle = '#2f7de0'; ctx.beginPath(); ctx.arc(4, 0, 9, -Math.PI / 2, Math.PI / 2); ctx.rect(0, -9, 4, 18); ctx.fill();
+      ctx.strokeStyle = '#1b1b2f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(-4, 0, 9, Math.PI / 2, Math.PI * 1.5); ctx.lineTo(4, -9); ctx.arc(4, 0, 9, -Math.PI / 2, Math.PI / 2); ctx.closePath(); ctx.stroke();
+      ctx.restore();
+      continue;
+    }
     if (g.meat) {
       ctx.fillStyle = '#d96a3a'; ctx.beginPath(); ctx.ellipse(g.x, g.y, 9, 6, -0.4, 0, TAU); ctx.fill();
       ctx.fillStyle = '#f5e8d0'; ctx.fillRect(g.x + 6, g.y - 8, 3, 8);
