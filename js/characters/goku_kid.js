@@ -17,16 +17,19 @@ let spriteLoaded = false;
     const img = new Image();
     img.onload = () => { if (--pending === 0) { spriteLoaded = true; console.log('¡Kid Goku listo!'); } };
     img.onerror = () => { console.warn('Fallo al cargar', file); if (--pending === 0) spriteLoaded = true; };
-    img.src = GOKU_PATH + file;
+    img.src = GOKU_PATH + file; img.axKey = file.replace('.png', '');
     gokuFrames[key].push(img);
   });
 })();
 
 /* poses nuevas de Kid Goku (hoja con el báculo): 1-3 guardia/respiración, 4-5 estocada, 6 patada, 7 puñetazo */
 const gokuWalk8 = [];
-for (let i = 1; i <= 8; i++) { const img = new Image(); img.src = GOKU_PATH + 'walk_0' + i + '.png'; gokuWalk8.push(img); }
-const gokuPose = [null];
-for (let i = 1; i <= 7; i++) { const img = new Image(); img.src = GOKU_PATH + 'pose_0' + i + '.png'; gokuPose.push(img); }
+for (let i = 1; i <= 8; i++) { const img = new Image(); img.src = GOKU_PATH + 'walk_0' + i + '.png'; img.axKey = 'walk_0' + i; gokuWalk8.push(img); }
+// Anclas X (px del sprite) bajo los pies de cada cuadro, para que Goku no "salte" de lado entre poses
+const GOKU_AX = {"idle_01": 16, "ki_01": 20, "ki_02": 21, "pose_01": 16, "pose_02": 16, "pose_03": 16, "pose_04": 16, "pose_05": 16, "pose_06": 26, "pose_07": 20, "punch_01": 20, "punch_02": 15, "punch_03": 15, "staffA_1": 20, "staffA_2": 20, "staffA_3": 20, "staffA_4": 20, "staffB_0": 20, "staffB_1": 18, "staffB_2": 20, "staffB_3": 20, "staffB_4": 20, "walk_01": 18, "walk_02": 20, "walk_03": 19, "walk_04": 18, "walk_05": 20, "walk_06": 19, "walk_07": 18, "walk_08": 20};
+const GOKU_POSE_NAMES = [null, 'pose_01', 'pose_02', 'pose_03', 'pose_04', 'pose_05', 'pose_06', 'pose_07',
+  'staffA_1', 'staffA_2', 'staffA_3', 'staffA_4', 'staffB_0', 'staffB_1', 'staffB_2', 'staffB_3', 'staffB_4'];
+const gokuPose = GOKU_POSE_NAMES.map(n => { if (!n) return null; const img = new Image(); img.src = GOKU_PATH + n + '.png'; img.axKey = n; return img; });
 const IDLE_POSES = [1, 2, 3, 2];
 function drawHero() {
   const f = P.face, sw = Math.sin(P.walk), moving = P.moving;
@@ -86,7 +89,8 @@ function drawHero() {
     if (img && img.complete && img.naturalWidth) {
       const dw = img.naturalWidth * scale;
       const dh = img.naturalHeight * scale;
-      ctx.drawImage(img, -dw / 2, -dh + 6, dw, dh);
+      const ax = img.axKey && GOKU_AX[img.axKey] != null ? GOKU_AX[img.axKey] * scale : dw / 2;
+      ctx.drawImage(img, -ax, -dh + 6, dw, dh);
     }
     ctx.restore();
   } else {

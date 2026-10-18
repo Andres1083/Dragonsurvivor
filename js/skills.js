@@ -69,15 +69,19 @@ const setPose = (n, t) => { P.poseN = n; P.poseT = t; };
 const SKILL_FN = {
   baculo_sagrado(L) {
     const d = aimDir(260), len = 150 + L * 14, dmg = 34 + L * 14;
-    P.a.punch = 0.3; setPose(4, 0.14); pending.push({ t: 0.14, fn: () => setPose(5, 0.2) });
+    if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
+    P.a.punch = 0.3;
+    // secuencia de la hoja: preparar -> subir -> tajo -> estocada (el tajo rojo ya viene en el sprite)
+    setPose(8, 0.07); pending.push({ t: 0.07, fn: () => setPose(9, 0.07) }, { t: 0.14, fn: () => setPose(10, 0.07) }, { t: 0.21, fn: () => setPose(11, 0.16) });
     let best = null, bd = 1e9;
     for (const e of enemies) if (!e.dead && inLine(e, P.x, P.y, d.dx, d.dy, len, 90)) { const q = (e.x - P.x) ** 2 + (e.y - P.y) ** 2; if (q < bd) { bd = q; best = e; } }
-    fx.push({ k: 'staffswing', x: P.x, y: P.y - 12, a: d.a, len, t: 0.3, max: 0.3 });
-    pending.push({ t: 0.12, fn: () => { if (best && !best.dead) { hurtEnemy(best, dmg, d.dx, d.dy, 320); shake = Math.max(shake, 0.12); burst(best.x, best.y, '#ff5a7a', 10, 220); } sfxBeep(160, 0.12, 'sawtooth'); } });
+    fx.push({ k: 'staffline', x: P.x, y: P.y - 14, a: d.a, len, t: 0.3, max: 0.3 });
+    pending.push({ t: 0.2, fn: () => { if (best && !best.dead) { hurtEnemy(best, dmg, d.dx, d.dy, 320); shake = Math.max(shake, 0.12); burst(best.x, best.y, '#ff5a7a', 10, 220); } sfxBeep(160, 0.12, 'sawtooth'); } });
   },
   baculo_giro(L) {
     const R = 115 + L * 10, dmg = 22 + L * 8, hits = 3;
-    P.a.kick = 0.45; setPose(6, 0.5);
+    P.a.kick = 0; P.a.punch = 0.6;
+    for (let i = 0; i < 8; i++) pending.push({ t: i * 0.075, fn: () => setPose(13 + (i % 4), 0.09) });
     fx.push({ k: 'staffspin', x: P.x, y: P.y, r: R, t: 0.6, max: 0.6, follow: true });
     for (let i = 0; i < hits; i++) pending.push({ t: 0.1 + i * 0.16, fn: () => {
       for (const e of enemies) if (!e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) hurtEnemy(e, dmg, e.x - P.x, e.y - P.y, 240);
@@ -85,7 +89,8 @@ const SKILL_FN = {
   },
   baculo_boomerang(L) {
     const d = aimDir(500);
-    P.a.punch = 0.25; setPose(5, 0.3);
+    if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
+    P.a.punch = 0.25; setPose(8, 0.1); pending.push({ t: 0.1, fn: () => setPose(9, 0.2) });
     boomers.push({ x: P.x, y: P.y - 10, dx: d.dx, dy: d.dy, out: 260 + L * 25, d: 0, back: false, rot: 0, dmg: 20 + L * 7, hit: new Set() });
     sfxBeep(420, 0.08, 'triangle');
   },
@@ -214,16 +219,16 @@ function drawSkillFx(f) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2); ctx.imageSmoothingEnabled = false;
     ctx.drawImage(st, -st.naturalWidth * 1.2, -len / 2, st.naturalWidth * 2.4, len); ctx.restore();
   };
-  if (f.k === 'staffswing') {
-    const a = f.a - 1.3 + 2.6 * Math.min(1, k * 1.6); staff(f.x + Math.cos(a) * f.len * 0.5, f.y + Math.sin(a) * f.len * 0.5, a, f.len);
-    const s = skillImg.arco_1; if (s.complete && s.naturalWidth) { ctx.save(); ctx.globalAlpha = 1 - k; ctx.translate(f.x + Math.cos(f.a) * f.len * 0.55, f.y + Math.sin(f.a) * f.len * 0.55); ctx.rotate(f.a); ctx.imageSmoothingEnabled = false; ctx.scale(2.4, 2.4); ctx.drawImage(s, -s.naturalWidth / 2, -s.naturalHeight / 2); ctx.restore(); }
+  if (f.k === 'staffline') {   // estela roja del golpe (alcance real del báculo)
+    ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a); ctx.globalAlpha = 0.85 * (1 - k);
+    const L = f.len * (0.35 + 0.65 * Math.min(1, k * 2.2));
+    const g = ctx.createLinearGradient(30, 0, L, 0); g.addColorStop(0, 'rgba(255,60,100,0)'); g.addColorStop(0.7, 'rgba(255,70,110,.9)'); g.addColorStop(1, 'rgba(255,230,235,.95)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(30, -2); ctx.lineTo(L, -5 * (1 - k) - 1); ctx.lineTo(L + 6, 0); ctx.lineTo(L, 5 * (1 - k) + 1); ctx.lineTo(30, 2); ctx.closePath(); ctx.fill(); ctx.restore();
     return true;
   }
-  if (f.k === 'staffspin') {
+  if (f.k === 'staffspin') {   // anillo rojo del giro (el báculo se ve en los cuadros de Goku)
     f.x = P.x; f.y = P.y - 12;
-    const a = k * TAU * 2.5;
     ctx.save(); ctx.globalAlpha = 0.6 * (1 - k); ctx.strokeStyle = '#ff5a7a'; ctx.lineWidth = 6 * (1 - k) + 2; ctx.beginPath(); ctx.arc(f.x, f.y + 12, f.r * (0.6 + 0.4 * Math.min(1, k * 3)), 0, TAU); ctx.stroke(); ctx.restore();
-    for (let i = 0; i < 2; i++) { const b = a + i * Math.PI; staff(f.x + Math.cos(b) * f.r * 0.55, f.y + Math.sin(b) * f.r * 0.55 * 0.8, b, f.r * 0.95); }
     return true;
   }
   if (f.k === 'blur') {
