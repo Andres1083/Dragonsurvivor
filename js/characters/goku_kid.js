@@ -81,7 +81,7 @@ function drawHero() {
     } else if (!moving && gokuPose[1].complete && gokuPose[1].naturalWidth) {
       img = gokuPose[IDLE_POSES[Math.floor(time * 3.5) % IDLE_POSES.length]] || img;
     } else if (moving && gokuWalk8[0].complete && gokuWalk8[0].naturalWidth) {
-      img = gokuWalk8[Math.floor(P.walk * 0.6) % gokuWalk8.length];
+      img = gokuWalk8[Math.floor(P.walk * 0.8) % gokuWalk8.length];
     } else if (moving && gokuFrames.walk.length) {
       const idx = Math.floor(P.walk * 2) % gokuFrames.walk.length;
       img = gokuFrames.walk[idx];
