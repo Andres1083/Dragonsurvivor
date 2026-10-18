@@ -8,6 +8,7 @@ const CHARACTERS = {
     rarity: 'R',
     description: 'El pequeño guerrero saiyajin. Equilibrado y listo para pelear.',
     unlocked: true,
+    dodge: true,     // tiene Esquiva (impulso con invulnerabilidad breve)
     energy: false,   // sin ataques de energía (la onda de ki queda para versiones posteriores)
     startCopies: 1,
     skills: ['baculo_sagrado', 'baculo_giro', 'baculo_boomerang', 'jankenpon'],

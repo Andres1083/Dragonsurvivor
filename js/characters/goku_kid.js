@@ -57,7 +57,9 @@ function drawHero() {
     let img = gokuFrames.idle[0];
     const scale = 1.7;
 
-    if (P.a.ki > 0) {
+    if (P.dodgeT > 0 && dodgeImg.complete && dodgeImg.naturalWidth) {
+      img = dodgeImg;
+    } else if (P.a.ki > 0) {
       const idx = P.a.ki > 0.14 ? 0 : Math.min(1, gokuFrames.ki.length - 1);
       img = gokuFrames.ki[idx] || img;
     } else if (P.a.kick > 0) {

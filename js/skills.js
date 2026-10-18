@@ -13,6 +13,10 @@ const SKILLS = {
   lanzacohetes:     { name: 'Lanzacohetes',      cd: 14, cost: 45, icon: 'rocket',  desc: 'Cohete explosivo que daña en área.' }
 };
 const skillImg = {};
+/* Esquiva (solo Goku niño): impulso corto con invulnerabilidad breve; usa la pose y las estelas de la hoja de Kid Goku */
+const DODGE = { cd: 6, cost: 12, dist: 125, time: 0.22, inv: 0.45 };
+const dodgeImg = new Image(); dodgeImg.src = 'assets/personajes/goku_kid/dodge.png';
+const blurImgs = ['blur_1', 'blur_2'].map(n => { const i = new Image(); i.src = 'assets/personajes/goku_kid/' + n + '.png'; return i; });
 for (const n of ['baculo', 'arco_1', 'arco_2']) { const i = new Image(); i.src = 'assets/skills/' + n + '.png'; skillImg[n] = i; }
 
 /* copias guardadas por personaje */
@@ -128,6 +132,17 @@ const SKILL_FN = {
     sfxBeep(120, 0.15, 'sawtooth');
   }
 };
+function useDodge() {
+  if (!P || state !== 'play' || !getCurrentCharacter().dodge || P.dodgeT > 0) return;
+  if (P.dodgeCd > 0) return;
+  if (P.ki < DODGE.cost) { if (!P.kiWarn || time - P.kiWarn > 0.8) { P.kiWarn = time; addText(P.x, P.y - 40, 'Ki insuficiente', '#8ec8ff'); } return; }
+  let [dx, dy] = moveVec(); if (!dx && !dy) { dx = P.face; dy = 0; }
+  const m = Math.hypot(dx, dy) || 1; P.ddx = dx / m; P.ddy = dy / m;
+  if (Math.abs(P.ddx) > 0.2) P.face = P.ddx > 0 ? 1 : -1;
+  P.ki -= DODGE.cost; P.dodgeT = DODGE.time; P.dodgeCd = DODGE.cd * P.cdMul; P.dodgeCdMax = P.dodgeCd; P.inv = Math.max(P.inv, DODGE.inv);
+  fx.push({ k: 'blur', x: P.x, y: P.y - 18, a: Math.atan2(P.ddy, P.ddx), t: 0.3, max: 0.3, n: Math.random() < 0.5 ? 0 : 1 });
+  sfxBeep(700, 0.07, 'triangle');
+}
 function useSkill(i) {
   if (!P || state !== 'play' || !P.skills) return;
   const s = P.skills[i]; if (!s || P.scd[s.id] > 0) return;
@@ -145,6 +160,12 @@ function explode(x, y, R, dmg) {
 }
 function updateSkills(dt) {
   if (!P.skills) return;
+  P.dodgeCd = Math.max(0, (P.dodgeCd || 0) - dt);
+  if (P.dodgeT > 0) {
+    P.dodgeT -= dt; const v = DODGE.dist / DODGE.time * dt; P.x += P.ddx * v; P.y += P.ddy * v; P.idle = 0;
+    if (Math.random() < 0.6) parts.push({ x: P.x, y: P.y - 4, vx: -P.ddx * 40, vy: -P.ddy * 40, life: 0.25, max: 0.25, col: '#cfd8ff', r: 2.5 });
+  }
+  if (tapped.has('Space') || tapped.has('ShiftLeft') || tapped.has('ShiftRight') || pad.press.has(5) || pad.press.has(4)) useDodge();
   P.idle = P.moving ? 0 : P.idle + dt;
   const charging = P.pas.carga && P.idle > 1;
   P.ki = Math.min(P.kiMax, P.ki + P.kiRegen * dt * (charging ? 3 : 1));
@@ -204,6 +225,10 @@ function drawSkillFx(f) {
     for (let i = 0; i < 2; i++) { const b = a + i * Math.PI; staff(f.x + Math.cos(b) * f.r * 0.55, f.y + Math.sin(b) * f.r * 0.55 * 0.8, b, f.r * 0.95); }
     return true;
   }
+  if (f.k === 'blur') {
+    const im = blurImgs[f.n]; if (im.complete && im.naturalWidth) { ctx.save(); ctx.globalAlpha = 0.9 * (1 - k); ctx.translate(f.x - Math.cos(f.a) * (20 + 36 * k), f.y - Math.sin(f.a) * (20 + 36 * k)); ctx.rotate(f.a); ctx.imageSmoothingEnabled = false; ctx.scale(1.4, 1.4); ctx.drawImage(im, -im.naturalWidth / 2, -im.naturalHeight / 2); ctx.restore(); }
+    return true;
+  }
   if (f.k === 'claw') {
     ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a); ctx.globalAlpha = 1 - k; ctx.strokeStyle = '#fff6b0'; ctx.lineWidth = 3;
     for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(-20 + k * 30, i * 9 - 12); ctx.quadraticCurveTo(0 + k * 30, i * 9, 22 + k * 30, i * 9 + 12); ctx.stroke(); }
@@ -255,12 +280,20 @@ function buildSkillBar() {
     else { b.classList.add('empty'); }
     bar.appendChild(b);
   }
+  if (CHARACTERS[P.charId].dodge) {
+    const d = document.createElement('button'); d.type = 'button'; d.className = 'sk-btn sk-dodge'; d.dataset.dodge = '1'; d.title = 'Esquiva (Shift / RB)';
+    d.innerHTML = '<span class="sk-ico"><b class="sk-emoji">💨</b></span><span class="sk-fill"></span><span class="sk-key">⇧</span><span class="sk-pad">RB</span><span class="sk-cost">' + DODGE.cost + '</span>';
+    d.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); useDodge(); });
+    bar.appendChild(d);
+  }
   bar.hidden = !P.skills.length && !list.length;
 }
 function updateSkillBar() {
   const bar = document.getElementById('skillbar'); if (!bar) return;
   const pads = navigator.getGamepads ? [...navigator.getGamepads()] : [];
   bar.classList.toggle('pad', pads.some(g => g && g.connected));
+  const db = bar.querySelector('[data-dodge]');
+  if (db) { const p = P.dodgeCd > 0 ? clamp(P.dodgeCd / (P.dodgeCdMax || DODGE.cd), 0, 1) : 0; db.style.setProperty('--p', (p * 360).toFixed(1) + 'deg'); db.classList.toggle('ready', p <= 0 && P.ki >= DODGE.cost); db.classList.toggle('nok', P.ki < DODGE.cost); }
   for (const b of bar.querySelectorAll('.sk-btn[data-skill]')) {
     const id = b.dataset.skill, rem = P.scd[id] || 0, mx = (P.scdMax && P.scdMax[id]) || SKILLS[id].cd * P.cdMul;
     const p = rem > 0 ? clamp(rem / mx, 0, 1) : 0;

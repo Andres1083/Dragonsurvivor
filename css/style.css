@@ -273,3 +273,6 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
 .skillbar.pad .sk-pad { display: block; }
 .skillbar.pad .sk-key { display: none; }
 .sk-btn.auto::after { content: "AUTO"; position: absolute; left: 0; right: 0; top: 14px; text-align: center; font-size: 8px; font-weight: 800; color: #7dffa0; text-shadow: 0 1px 2px #000; }
+.sk-dodge { width: 52px; height: 52px; align-self: flex-end; border-radius: 50%; }
+.sk-dodge .sk-emoji { font-size: 24px; }
+.sk-dodge .sk-cost { display: none; }
