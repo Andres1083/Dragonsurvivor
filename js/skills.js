@@ -25,6 +25,7 @@ function equippedSkills(charId) {
 }
 
 let boomers = [], rockets = [];
+const SKILL_AUTO_RANGE = { baculo_sagrado: 150, baculo_giro: 110, baculo_boomerang: 260, rogafufuken: 120, katana: 170, lanzacohetes: 300, jankenpon: 110 };
 function activePassives(charId) { const ch = CHARACTERS[charId], c = getCopies(charId); return ch && ch.passives ? ch.passives.filter(p => c >= p.stars) : []; }
 function applyPassives() {
   P.pas = {};
@@ -159,8 +160,11 @@ function updateSkills(dt) {
   if (capsT <= 0) { capsT = 40; if (gems.filter(g => g.capsule).length < 2) { const a = Math.random() * TAU, r = 260 + Math.random() * 160; gems.push({ x: P.x + Math.cos(a) * r, y: P.y + Math.sin(a) * r, v: 0, capsule: true, t: 0 }); } }
   P.skills.forEach((s, i) => {
     if (P.scd[s.id] > 0) P.scd[s.id] = Math.max(0, P.scd[s.id] - dt);
-    if (tapped.has('Digit' + (i + 1)) || tapped.has('Numpad' + (i + 1)) || pad.press.has([2, 3, 1, 4][i])) useSkill(i);
+    if (tapped.has('Digit' + (i + 1)) || tapped.has('Numpad' + (i + 1)) || pad.press.has([0, 2, 3, 1][i])) useSkill(i);
   });
+  // la habilidad 1 se lanza sola cuando hay un enemigo a su alcance
+  const s0 = P.skills[0];
+  if (s0 && P.scd[s0.id] <= 0 && P.ki >= (SKILLS[s0.id].cost || 0) && nearest(SKILL_AUTO_RANGE[s0.id] || 200)) useSkill(0);
   // báculo boomerang
   for (const b of boomers) {
     b.rot += dt * 18;
@@ -242,8 +246,9 @@ function buildSkillBar() {
     const s = list[i], b = document.createElement('button'); b.type = 'button'; b.className = 'sk-btn';
     if (s && s.lv > 0) {
       const def = SKILLS[s.id], idx = P.skills.findIndex(x => x.id === s.id);
+      if (idx === 0) b.classList.add('auto');
       b.dataset.skill = s.id; b.title = def.name + ' · Nv ' + s.lv + ' · ' + (def.cost || 0) + ' Ki';
-      b.innerHTML = `<span class="sk-ico">${SKILL_ICON[def.icon] || ''}</span><span class="sk-fill"></span><span class="sk-key">${idx + 1}</span><span class="sk-lv">Nv${s.lv}</span><span class="sk-cost">${def.cost || 0}</span>`;
+      b.innerHTML = `<span class="sk-ico">${SKILL_ICON[def.icon] || ''}</span><span class="sk-fill"></span><span class="sk-key">${idx + 1}</span><span class="sk-pad">${['A', 'X', 'Y', 'B'][idx]}</span><span class="sk-lv">Nv${s.lv}</span><span class="sk-cost">${def.cost || 0}</span>`;
       const fire = e => { e.preventDefault(); e.stopPropagation(); useSkill(idx); };
       b.addEventListener('pointerdown', fire);
     } else if (s) { b.classList.add('locked'); b.innerHTML = '<span class="sk-ico"><b class="sk-emoji">🔒</b></span>'; b.title = 'Consigue otra copia en el gacha'; }
@@ -254,6 +259,8 @@ function buildSkillBar() {
 }
 function updateSkillBar() {
   const bar = document.getElementById('skillbar'); if (!bar) return;
+  const pads = navigator.getGamepads ? [...navigator.getGamepads()] : [];
+  bar.classList.toggle('pad', pads.some(g => g && g.connected));
   for (const b of bar.querySelectorAll('.sk-btn[data-skill]')) {
     const id = b.dataset.skill, rem = P.scd[id] || 0, mx = (P.scdMax && P.scdMax[id]) || SKILLS[id].cd * P.cdMul;
     const p = rem > 0 ? clamp(rem / mx, 0, 1) : 0;

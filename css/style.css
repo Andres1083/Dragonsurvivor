@@ -242,3 +242,34 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
 .over-sprite[hidden] { display: none; }
 .sk-cost { position:absolute; left:0; right:0; bottom:0; text-align:center; font-size:10px; font-weight:700; color:#9fd4ff; background:rgba(5,10,30,.55); }
 .sk-btn.nok .sk-ico { opacity:.45; }
+
+/* ----- Pantallas pequeñas y apaisadas (Steam Deck, móvil horizontal) ----- */
+#ov-chars { justify-content: flex-start; gap: 8px; padding-top: 10px; overflow: hidden; }
+.chars-layout { flex: 1; min-height: 0; align-items: stretch; flex-wrap: nowrap; }
+.char-detail { display: flex; flex-direction: column; max-height: calc(100vh - 86px); max-height: calc(100dvh - 86px); min-height: 0; }
+.cd-body { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
+.cd-tabs { display: flex; gap: 6px; margin: 4px 0 8px; }
+.cd-tabs .btn { flex: 1; padding: 6px 4px; font-size: 14px; box-shadow: 0 3px 0 #b3541e; }
+.cd-tabs .btn:not(.tab-on) { background: #3a5080; color: #e8eef8; box-shadow: 0 3px 0 #1d2a48; }
+.char-list { align-content: start; overflow-y: auto; max-height: calc(100vh - 86px); max-height: calc(100dvh - 86px); }
+@media (max-width: 600px) { .chars-layout { flex-direction: column; flex-wrap: nowrap; } .char-list { max-height: 130px; } .char-detail { max-height: none; flex: 1; } }
+@media (max-height: 820px) {
+  .char-detail .hd img { width: 56px; height: 56px; }
+  .char-detail .desc { margin-bottom: 6px; font-size: 12px; }
+  .stat-row { margin-bottom: 6px; }
+  .char-detail .actions { margin-top: 8px; }
+  .char-detail .actions .btn { padding: 8px 12px; font-size: 15px; }
+}
+.char-tile.sel, .btn-upg.sel { outline: 3px solid #fff; outline-offset: 2px; }
+/* pausa con dos tarjetas de estadísticas */
+.ps-grid { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; text-align: left; }
+.ps-card { background: #152238; border: 2px solid #3a5080; border-radius: 12px; padding: 10px 14px; min-width: 220px; color: #e8eef8; font-size: 13px; }
+.ps-card h3 { margin: 0 0 6px; color: var(--gold); font-size: 16px; }
+.ps-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; border-bottom: 1px solid #22314f; }
+.ps-row b { color: #ffe566; font-variant-numeric: tabular-nums; }
+.ps-skills { margin-top: 8px; }
+@media (max-height: 560px) { .ps-card { padding: 6px 10px; font-size: 12px; } .ps-row { padding: 1px 0; } }
+.sk-pad { display: none; position: absolute; left: 4px; top: 1px; font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; }
+.skillbar.pad .sk-pad { display: block; }
+.skillbar.pad .sk-key { display: none; }
+.sk-btn.auto::after { content: "AUTO"; position: absolute; left: 0; right: 0; top: 14px; text-align: center; font-size: 8px; font-weight: 800; color: #7dffa0; text-shadow: 0 1px 2px #000; }

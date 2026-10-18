@@ -67,11 +67,20 @@ function refreshZeni() {
 }
 
 function pauseStats() {
-  const w = P.w;
+  const ch = getCurrentCharacter(), base = getEffectiveStats(ch.id), w = P.w, pc = n => Math.round(n * 100) + '%';
+  const row = (l, v) => `<div class="ps-row"><span>${l}</span><b>${v}</b></div>`;
+  const perm = STAT_DEFS.map(d => row(d.label, fmtStat(d.key, base[d.key]))).join('');
+  const run =
+    row('Nivel', P.lvl) + row('Vida', Math.ceil(P.hp) + ' / ' + P.maxHp) + row('Ki', Math.floor(P.ki) + ' / ' + P.kiMax) +
+    row('Tiempo', fmtTime(time)) + row('Derrotados', kills) + row('Zeni de la partida', '+' + runZeni) +
+    row('Puño / Patada', 'Nv ' + w.punch + ' / Nv ' + w.kick) + (w.ki ? row('Onda de energía', 'Nv ' + w.ki) : '') +
+    row('Daño físico', '×' + P.dmgMul.toFixed(2)) + row('Daño de energía', '×' + P.enMul.toFixed(2)) +
+    row('Recarga', '×' + P.cdMul.toFixed(2)) + row('Velocidad', Math.round(P.speed)) +
+    row('Defensa', pc(P.armor)) + row('Evasión', pc(P.evasion)) + row('Regeneración', P.regen.toFixed(1) + '/s');
+  const skl = (P.skills || []).map(s => `${SKILLS[s.id].name} Nv ${s.lv}`).join(' · ');
   document.getElementById('pause-stats').innerHTML =
-    `Nivel ${P.lvl} · Vida ${Math.ceil(P.hp)}/${P.maxHp} · Tiempo ${fmtTime(time)} · Zeni +${runZeni}<br>` +
-    `Puño nv ${w.punch} · Patada nv ${w.kick}` + (w.ki ? ` · Onda nv ${w.ki}` : '') +
-    `<br>Daño ×${P.dmgMul.toFixed(2)} · Recarga ×${P.cdMul.toFixed(2)} · Velocidad ${Math.round(P.speed)} · Defensa ${Math.round(P.armor * 100)}% · Regen ${P.regen.toFixed(1)}/s`;
+    `<div class="ps-grid"><div class="ps-card"><h3>${ch.name}</h3>${perm}</div><div class="ps-card"><h3>Esta partida</h3>${run}</div></div>` +
+    (skl ? `<div class="small ps-skills">${skl}</div>` : '');
 }
 
 function togglePause() {
@@ -126,6 +135,7 @@ function renderCharList() {
   renderCharDetail();
 }
 
+let charTab = 'stats';
 function renderCharDetail() {
   const panel = document.getElementById('char-detail');
   if (!panel) return;
@@ -160,7 +170,7 @@ function renderCharDetail() {
       `</div>`;
   });
 
-  let sk = '';
+  let sk = '', gearStr = '';
   if (c.skills && typeof SKILLS !== 'undefined') {
     sk = `<div class="skill-list"><b>Habilidades personales</b> <span class="small">· Copias: ${getCopies(c.id)}</span>` +
       c.skills.map((id, k) => { const lv = skillLevel(c.id, k), d = SKILLS[id];
@@ -171,18 +181,22 @@ function renderCharDetail() {
     sk += `<div class="skill-list"><b>Pasivas</b> <span class="small">· ★ ${cp}</span>` +
       c.passives.map(p => `<div class="skill-row${cp >= p.stars ? '' : ' off'}"><span>${cp >= p.stars ? '' : '🔒 '}${p.name}</span><span class="lv">${'★'.repeat(p.stars)}</span><i>${p.desc}</i></div>`).join('') + `</div>`;
   }
-  if (typeof gearHtml === 'function') sk += gearHtml(c.id);
+  if (typeof gearHtml === 'function') gearStr = gearHtml(c.id);
+  const tabs = [['stats', 'Estadísticas'], ['skills', 'Habilidades'], ['gear', 'Equipo']];
+  const body = charTab === 'skills' ? sk : charTab === 'gear' ? gearStr : rows;
   panel.innerHTML =
     `<div class="hd">` +
       (c.portrait ? `<img src="${c.portrait}" alt="">` : '') +
       `<div class="meta"><b>${c.name}</b><span class="rarity ${c.rarity || ''}">${c.rarity || '?'}</span></div>` +
     `</div>` +
     (c.description ? `<div class="desc">${c.description}</div>` : '') +
-    sk + rows +
+    `<div class="cd-tabs">` + tabs.map(([k, n]) => `<button type="button" class="btn btn-sm${k === charTab ? ' tab-on' : ''}" data-tab="${k}">${n}</button>`).join('') + `</div>` +
+    `<div class="cd-body">${body}</div>` +
     `<div class="actions">` +
       `<button class="btn" id="b-select-char">Elegir compañero</button>` +
     `</div>`;
 
+  panel.querySelectorAll('[data-tab]').forEach(b => { b.onclick = () => { charTab = b.dataset.tab; renderCharDetail(); }; });
   if (typeof bindGear === 'function') bindGear(panel, c.id, renderCharDetail);
   panel.querySelectorAll('.btn-upg[data-stat]').forEach(btn => {
     btn.onclick = () => {
@@ -221,7 +235,7 @@ document.getElementById('b-quit').onclick = () => setState('title');
 /* ---------- navegación con teclado / mando ---------- */
 function menuButtons() {
   const el = document.querySelector('.ov.show');
-  return el ? [...el.querySelectorAll('.btn:not([disabled])')] : [];
+  return el ? [...el.querySelectorAll('.btn:not([disabled]), .btn-upg:not([disabled]), .char-tile')] : [];
 }
 let mSel = 0;
 function menuInput() {
@@ -247,6 +261,7 @@ function menuInput() {
   if (down || right) mSel = (mSel + 1) % bs.length;
   mSel = clamp(mSel, 0, bs.length - 1);
   bs.forEach((b, i) => b.classList.toggle('sel', i === mSel));
+  if (bs[mSel] && (up || down || left || right) && bs[mSel].scrollIntoView) bs[mSel].scrollIntoView({ block: 'nearest' });
   if (ok) bs[mSel].click();
   if (state === 'over' && tapped.has('KeyR')) startRun();
 }

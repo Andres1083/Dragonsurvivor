@@ -30,14 +30,14 @@ function drawHero() {
   ctx.save(); ctx.translate(P.x, P.y);
 
   ctx.fillStyle = 'rgba(0,0,0,.25)';
-  ctx.beginPath(); ctx.ellipse(0, 7, 12, 4, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 2, 12, 3.5, 0, 0, TAU); ctx.fill();
 
   const bob = moving && P.a.punch <= 0 && P.a.kick <= 0 && P.a.ki <= 0
-    ? Math.abs(sw) * -2.5
+    ? Math.abs(sw) * -1.5
     : Math.sin(time * 3) * 0.8;
   ctx.translate(0, bob + (P.water ? 5 : 0));
 
-  if (P.water) { ctx.beginPath(); ctx.rect(-30, -50, 60, 56); ctx.clip(); }
+  if (P.water) { ctx.beginPath(); ctx.rect(-80, -200, 160, 200); ctx.clip(); }
 
   if (P.charId === 'yamcha' && yamchaIdle.complete && yamchaIdle.naturalWidth) {
     // Yamcha jugable: mismos sprites del jefe (miran a la derecha)
