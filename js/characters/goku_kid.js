@@ -23,6 +23,10 @@ let spriteLoaded = false;
   });
 })();
 
+/* poses nuevas de Kid Goku (hoja con el báculo): 1-3 guardia/respiración, 4-5 estocada, 6 patada, 7 puñetazo */
+const gokuPose = [null];
+for (let i = 1; i <= 7; i++) { const img = new Image(); img.src = GOKU_PATH + 'pose_0' + i + '.png'; gokuPose.push(img); }
+const IDLE_POSES = [1, 2, 3, 2];
 function drawHero() {
   const f = P.face, sw = Math.sin(P.walk), moving = P.moving;
 
@@ -30,7 +34,7 @@ function drawHero() {
   ctx.save(); ctx.translate(P.x, P.y);
 
   ctx.fillStyle = 'rgba(0,0,0,.25)';
-  ctx.beginPath(); ctx.ellipse(0, 2, 12, 3.5, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-3 * f, 2, 17, 3.5, 0, 0, TAU); ctx.fill();
 
   const bob = moving && P.a.punch <= 0 && P.a.kick <= 0 && P.a.ki <= 0
     ? Math.abs(sw) * -1.5
@@ -59,6 +63,8 @@ function drawHero() {
 
     if (P.dodgeT > 0 && dodgeImg.complete && dodgeImg.naturalWidth) {
       img = dodgeImg;
+    } else if (P.poseT > 0 && gokuPose[P.poseN] && gokuPose[P.poseN].complete && gokuPose[P.poseN].naturalWidth) {
+      img = gokuPose[P.poseN];
     } else if (P.a.ki > 0) {
       const idx = P.a.ki > 0.14 ? 0 : Math.min(1, gokuFrames.ki.length - 1);
       img = gokuFrames.ki[idx] || img;
@@ -70,6 +76,8 @@ function drawHero() {
       const t = 1 - P.a.punch / 0.22;
       const idx = Math.min(gokuFrames.punch.length - 1, Math.floor(t * gokuFrames.punch.length));
       img = gokuFrames.punch[idx] || img;
+    } else if (!moving && gokuPose[1].complete && gokuPose[1].naturalWidth) {
+      img = gokuPose[IDLE_POSES[Math.floor(time * 3.5) % IDLE_POSES.length]] || img;
     } else if (moving && gokuFrames.walk.length) {
       const idx = Math.floor(P.walk * 2) % gokuFrames.walk.length;
       img = gokuFrames.walk[idx];

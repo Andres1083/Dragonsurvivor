@@ -65,10 +65,11 @@ function inLine(e, x0, y0, dx, dy, len, w) {   // ¿está el enemigo dentro del 
   return along > -e.r && along < len + e.r && side < w / 2 + e.r;
 }
 
+const setPose = (n, t) => { P.poseN = n; P.poseT = t; };
 const SKILL_FN = {
   baculo_sagrado(L) {
     const d = aimDir(260), len = 150 + L * 14, dmg = 34 + L * 14;
-    P.a.punch = 0.3;
+    P.a.punch = 0.3; setPose(4, 0.14); pending.push({ t: 0.14, fn: () => setPose(5, 0.2) });
     let best = null, bd = 1e9;
     for (const e of enemies) if (!e.dead && inLine(e, P.x, P.y, d.dx, d.dy, len, 90)) { const q = (e.x - P.x) ** 2 + (e.y - P.y) ** 2; if (q < bd) { bd = q; best = e; } }
     fx.push({ k: 'staffswing', x: P.x, y: P.y - 12, a: d.a, len, t: 0.3, max: 0.3 });
@@ -76,7 +77,7 @@ const SKILL_FN = {
   },
   baculo_giro(L) {
     const R = 115 + L * 10, dmg = 22 + L * 8, hits = 3;
-    P.a.kick = 0.45;
+    P.a.kick = 0.45; setPose(6, 0.5);
     fx.push({ k: 'staffspin', x: P.x, y: P.y, r: R, t: 0.6, max: 0.6, follow: true });
     for (let i = 0; i < hits; i++) pending.push({ t: 0.1 + i * 0.16, fn: () => {
       for (const e of enemies) if (!e.dead && (e.x - P.x) ** 2 + (e.y - P.y) ** 2 < (R + e.r) ** 2) hurtEnemy(e, dmg, e.x - P.x, e.y - P.y, 240);
@@ -84,7 +85,7 @@ const SKILL_FN = {
   },
   baculo_boomerang(L) {
     const d = aimDir(500);
-    P.a.punch = 0.25;
+    P.a.punch = 0.25; setPose(5, 0.3);
     boomers.push({ x: P.x, y: P.y - 10, dx: d.dx, dy: d.dy, out: 260 + L * 25, d: 0, back: false, rot: 0, dmg: 20 + L * 7, hit: new Set() });
     sfxBeep(420, 0.08, 'triangle');
   },
@@ -109,7 +110,7 @@ const SKILL_FN = {
   },
   jankenpon(L) {
     const d = aimDir(260), pick = Math.floor(Math.random() * 3), names = ['¡Piedra!', '¡Papel!', '¡Tijera!'], cols = ['#ffd27a', '#8ee08e', '#8ec8ff'];
-    addText(P.x, P.y - 48, names[pick], cols[pick], 1.4); P.a.punch = 0.3;
+    addText(P.x, P.y - 48, names[pick], cols[pick], 1.4); P.a.punch = 0.3; setPose(pick === 2 ? 5 : 7, 0.3);
     if (pick === 0) {          // piedra: puñetazo único muy fuerte
       const t = nearest(200), dmg = 40 + L * 14;
       fx.push({ k: 'fist', x: P.x + d.dx * 40, y: P.y + d.dy * 40 - 8, t: 0.25, max: 0.25, r: 40 });
@@ -160,7 +161,7 @@ function explode(x, y, R, dmg) {
 }
 function updateSkills(dt) {
   if (!P.skills) return;
-  P.dodgeCd = Math.max(0, (P.dodgeCd || 0) - dt);
+  P.dodgeCd = Math.max(0, (P.dodgeCd || 0) - dt); if (P.poseT > 0) P.poseT -= dt;
   if (P.dodgeT > 0) {
     P.dodgeT -= dt; const v = DODGE.dist / DODGE.time * dt; P.x += P.ddx * v; P.y += P.ddy * v; P.idle = 0;
     if (Math.random() < 0.6) parts.push({ x: P.x, y: P.y - 4, vx: -P.ddx * 40, vy: -P.ddy * 40, life: 0.25, max: 0.25, col: '#cfd8ff', r: 2.5 });
