@@ -8,7 +8,6 @@ let spriteLoaded = false;
 (function loadGokuFrames() {
   const list = [
     ['idle',  'idle_01.png'],
-    ['walk',  'walk_01.png'], ['walk',  'walk_02.png'], ['walk',  'walk_03.png'],
     ['punch', 'punch_01.png'], ['punch', 'punch_02.png'], ['punch', 'punch_03.png'],
     ['kick',  'kick_01.png'],  ['kick',  'kick_02.png'],  ['kick',  'kick_03.png'],
     ['ki',    'ki_01.png'],    ['ki',    'ki_02.png']
@@ -25,7 +24,7 @@ let spriteLoaded = false;
 
 /* poses nuevas de Kid Goku (hoja con el báculo): 1-3 guardia/respiración, 4-5 estocada, 6 patada, 7 puñetazo */
 const gokuWalk8 = [];
-for (let i = 1; i <= 8; i++) { const img = new Image(); img.src = GOKU_PATH + 'walk8_0' + i + '.png'; gokuWalk8.push(img); }
+for (let i = 1; i <= 8; i++) { const img = new Image(); img.src = GOKU_PATH + 'walk_0' + i + '.png'; gokuWalk8.push(img); }
 const gokuPose = [null];
 for (let i = 1; i <= 7; i++) { const img = new Image(); img.src = GOKU_PATH + 'pose_0' + i + '.png'; gokuPose.push(img); }
 const IDLE_POSES = [1, 2, 3, 2];
@@ -61,7 +60,7 @@ function drawHero() {
     ctx.scale(f, 1);
 
     let img = gokuFrames.idle[0];
-    const scale = 1.7;
+    const scale = 1.85;
 
     if (P.dodgeT > 0 && dodgeImg.complete && dodgeImg.naturalWidth) {
       img = dodgeImg;
@@ -82,9 +81,6 @@ function drawHero() {
       img = gokuPose[IDLE_POSES[Math.floor(time * 3.5) % IDLE_POSES.length]] || img;
     } else if (moving && gokuWalk8[0].complete && gokuWalk8[0].naturalWidth) {
       img = gokuWalk8[Math.floor(P.walk * 0.8) % gokuWalk8.length];
-    } else if (moving && gokuFrames.walk.length) {
-      const idx = Math.floor(P.walk * 2) % gokuFrames.walk.length;
-      img = gokuFrames.walk[idx];
     }
 
     if (img && img.complete && img.naturalWidth) {
