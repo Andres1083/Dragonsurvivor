@@ -7,7 +7,7 @@ function drawEnemy(e) {
   const w = Math.sin(e.ph), s = e.r / 12; shadow(0, e.r * 0.8, e.r * 1.1);
   ctx.scale(e.face * s, s);
   const fl = e.flash > 0; const C = (a) => fl ? '#ffffff' : a;
-  if (e.type === 'wolf') {
+  if (e.type === 'wolf' && !(mwolfFrames[0].complete && mwolfFrames[0].naturalWidth)) {
     const frames = (typeof wolfWalk !== 'undefined' && wolfWalk.length) ? wolfWalk : null;
     let img = (typeof wolfIdle !== 'undefined') ? wolfIdle : null;
     if (frames && frames.length) {
@@ -25,9 +25,9 @@ function drawEnemy(e) {
       limb(-8, 5, -9 + w * 4, 12, 4, C('#6d7280')); limb(6, 5, 7 - w * 4, 12, 4, C('#6d7280'));
       ctx.fillStyle = C('#8a90a0'); ctx.beginPath(); ctx.ellipse(0, 0, 13, 7.5, 0, 0, TAU); ctx.fill();
     }
-  } else if (e.type === 'wwolf' && wwolfFrames[0].complete && wwolfFrames[0].naturalWidth) {
+  } else if ((e.type === 'wwolf' || e.type === 'wolf') && wwolfFrames[0].complete && wwolfFrames[0].naturalWidth) {
     const i = e.frame != null ? e.frame : WWOLF_WALK[Math.floor(e.ph * 1.1) % WWOLF_WALK.length];
-    const img = wwolfFrames[i], t = 54 / s;
+    const img = (e.type === 'wolf' ? mwolfFrames : wwolfFrames)[i], t = (e.type === 'wolf' ? 46 : 54) / s;
     ctx.imageSmoothingEnabled = false;
     if (fl) ctx.filter = 'brightness(2.4)';
     ctx.drawImage(img, -t / 2, -t + 9, t, t);

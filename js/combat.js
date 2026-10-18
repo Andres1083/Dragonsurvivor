@@ -12,6 +12,8 @@ const wolfWalk = [];
 /* Lobo blanco-gris (pixel art 32x32, mira a la derecha): ciclo de caminar y mordida (frames 5-7 = preparar, saltar, morder) */
 const wwolfFrames = [];
 for (let i = 1; i <= 14; i++) { const img = new Image(); img.src = 'assets/enemigos/lobo_blanco/f' + String(i).padStart(2, '0') + '.png'; wwolfFrames.push(img); }
+const mwolfFrames = [];
+for (let i = 1; i <= 14; i++) { const img = new Image(); img.src = 'assets/enemigos/lobo_marron/f' + String(i).padStart(2, '0') + '.png'; mwolfFrames.push(img); }
 const WWOLF_WALK = [0, 1, 2, 3, 7, 8, 9, 12, 13];
 const wolfIdle = new Image(); wolfIdle.src = 'assets/enemigos/lobo/idle.png';
 

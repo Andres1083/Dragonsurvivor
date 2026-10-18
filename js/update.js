@@ -31,7 +31,7 @@ function update(dt) {
     e.ph += dt * 8; e.flash = Math.max(0, e.flash - dt);
     let mv = 1, contact = true;
     if (e.type === 'bandit') { mv = soldierAI(e, dt, d); contact = false; }
-    else if (e.type === 'wwolf') { mv = wwolfAI(e, dt, d); contact = false; }
+    else if (e.type === 'wwolf' || e.type === 'wolf') { mv = wwolfAI(e, dt, d); contact = false; }
     e.x += (dx / d * e.spd * mv + e.kx) * dt; e.y += (dy / d * e.spd * mv + e.ky) * dt;
     e.kx *= Math.pow(0.02, dt); e.ky *= Math.pow(0.02, dt);
     if (Math.abs(dx) > 4) e.face = dx > 0 ? 1 : -1;

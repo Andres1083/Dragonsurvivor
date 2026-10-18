@@ -7,7 +7,18 @@ const treePine = new Image(); treePine.src = 'assets/world/tree_pine.png';
 /* Tamaño de los árboles: 1 = el tamaño anterior (diminuto). Con 4.5 los robles miden ~110 px y los pinos ~160 px
    (Goku mide ~78 px). Sube o baja este número para ajustarlos. */
 const TREE_SCALE = 4.5;
-const TREE_PAD_Y = Math.ceil(40.4 * TREE_SCALE / T) + 1;   // filas extra abajo para no recortar copas altas
+/* variedad de árboles: pack Forgotten Memories y Valley Ruin (hgt = alto en px del mundo; los dos originales usan su tamaño de siempre) */
+const TREE_KINDS = [];
+(function () {
+  const add = (src, hgt, w, legacy) => { const img = new Image(); img.src = src; for (let i = 0; i < w; i++) TREE_KINDS.push({ img, hgt, legacy }); };
+  add('assets/world/tree_oak.png', 0, 2, 'oak'); add('assets/world/tree_pine.png', 0, 2, 'pine');
+  for (const n of ['v_verde1', 'v_verde2', 'v_verde3']) add('assets/world/arboles/' + n + '.png', 125, 3);
+  add('assets/world/arboles/f_pino.png', 165, 4);
+  add('assets/world/arboles/f_naranja.png', 125, 2); add('assets/world/arboles/f_abedul.png', 115, 2); add('assets/world/arboles/f_turquesa.png', 120, 1);
+  for (const n of ['v_otono1', 'v_otono2', 'v_otono3']) add('assets/world/arboles/' + n + '.png', 110, 1);
+  add('assets/world/arboles/v_seco.png', 105, 1); add('assets/world/arboles/f_sauce.png', 210, 1);
+})();
+const TREE_PAD_Y = Math.ceil(210 / T) + 1;   // filas extra abajo para no recortar copas altas
 
 /* texturas del suelo (pack Forgotten Memories): se usan como patrón que se repite, así no se ven costuras */
 const GROUND = {};
@@ -38,7 +49,7 @@ function terrain(tx, ty) {
   return 'grass';
 }
 function drawWorld(camx, camy, vw, vh, time) {
-  const x0 = Math.floor(camx / T) - 2, x1 = Math.floor((camx + vw) / T) + 2;
+  const x0 = Math.floor(camx / T) - 4, x1 = Math.floor((camx + vw) / T) + 4;
   const y0 = Math.floor(camy / T) - 1, y1 = Math.floor((camy + vh) / T) + TREE_PAD_Y;
   const trees = [], props = [];
   ctx.imageSmoothingEnabled = false;
@@ -77,15 +88,18 @@ function drawWorld(camx, camy, vw, vh, time) {
   }
   ctx.imageSmoothingEnabled = true;
   for (const [x, y, h] of trees) {
-    const pine = ((h * 1000) | 0) % 2 === 0;
-    const img = pine ? treePine : treeOak;
-    const sc = pine ? (0.35 + h * 2.4) : (0.28 + h * 2.0);
-    const iw = (img.naturalWidth || 40) * sc * 0.18 * TREE_SCALE;
-    const ih = (img.naturalHeight || 50) * sc * 0.18 * TREE_SCALE;
+    const k = (h * 1000) | 0, kind = TREE_KINDS[k % TREE_KINDS.length], img = kind.img;
+    let iw, ih;
+    if (kind.legacy) {
+      const sc = kind.legacy === 'pine' ? (0.35 + h * 2.4) : (0.28 + h * 2.0);
+      iw = (img.naturalWidth || 40) * sc * 0.18 * TREE_SCALE; ih = (img.naturalHeight || 50) * sc * 0.18 * TREE_SCALE;
+    } else {
+      ih = kind.hgt * (0.85 + ((k * 7) % 10) / 25); iw = ih * (img.naturalWidth || 40) / (img.naturalHeight || 50);
+    }
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath(); ctx.ellipse(x, y + 2, iw * 0.35, Math.max(4, ih * 0.06), 0, 0, TAU); ctx.fill();
     if (img.complete && img.naturalWidth) {
-      ctx.drawImage(img, x - iw / 2, y - ih + 4, iw, ih);
+      ctx.imageSmoothingEnabled = !!kind.legacy; ctx.drawImage(img, x - iw / 2, y - ih + 4, iw, ih); ctx.imageSmoothingEnabled = true;
     } else {
       // fallback simple
       ctx.fillStyle = '#7b4b25'; ctx.fillRect(x - 4, y - 20, 8, 22);
