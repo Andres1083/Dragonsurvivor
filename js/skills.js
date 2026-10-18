@@ -20,8 +20,12 @@ const blurImgs = ['blur_1', 'blur_2'].map(n => { const i = new Image(); i.src = 
 for (const n of ['baculo', 'arco_1', 'arco_2']) { const i = new Image(); i.src = 'assets/skills/' + n + '.png'; skillImg[n] = i; }
 
 /* copias guardadas por personaje */
-function getCopies(id) { const c = store.get('ds_copies', {}) || {}; return Math.max(c[id] | 0, (CHARACTERS[id] && CHARACTERS[id].startCopies) | 0); }
-function addCopy(id, n) { const c = store.get('ds_copies', {}) || {}; c[id] = Math.max(c[id] | 0, getCopies(id)) + (n || 1); store.set('ds_copies', c); return c[id]; }
+// MODO PRUEBAS: mientras sea true, todos los personajes y habilidades están al máximo (el gacha solo da personajes por ahora).
+// Ponlo en false cuando las copias/habilidades se consigan de verdad.
+const TEST_UNLOCK = true;
+function getCopies(id) {
+  if (TEST_UNLOCK) return 8; const c = store.get('ds_copies', {}) || {}; return Math.max(c[id] | 0, (CHARACTERS[id] && CHARACTERS[id].startCopies) | 0); }
+function addCopy(id, n) { const c = store.get('ds_copies', {}) || {}; c[id] = Math.max(c[id] | 0, (CHARACTERS[id] && CHARACTERS[id].startCopies) | 0) + (n || 1); store.set('ds_copies', c); return c[id]; }
 function skillLevel(charId, k) { const ch = CHARACTERS[charId]; if (!ch || !ch.skills) return 0; return clamp(getCopies(charId) - k, 0, SKILL_MAX_LV); }
 function equippedSkills(charId) {
   const ch = CHARACTERS[charId]; if (!ch || !ch.skills) return [];
