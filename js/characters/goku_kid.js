@@ -47,16 +47,9 @@ function drawHero() {
 
   if (P.water) { ctx.beginPath(); ctx.rect(-80, -200, 160, 200); ctx.clip(); }
 
-  if (P.charId === 'yamcha' && yamchaIdle.complete && yamchaIdle.naturalWidth) {
-    // Yamcha jugable: mismos sprites del jefe (miran a la derecha)
+  if (P.charId === 'yamcha' && typeof drawYamchaHero === 'function') {
     ctx.save(); ctx.scale(f, 1); ctx.imageSmoothingEnabled = false;
-    const atk = P.a.punch > 0 || P.a.kick > 0 || P.a.ki > 0;
-    const set = atk ? yamchaAttack : yamchaWalk;
-    let img = yamchaIdle;
-    if (atk) img = set[Math.floor((time * 14)) % set.length] || img;
-    else if (moving) img = set[Math.floor(P.walk * 1.2) % set.length] || img;
-    const dh = 78, dw = dh * img.naturalWidth / img.naturalHeight;
-    ctx.drawImage(img, -dw / 2, -dh + 8, dw, dh);
+    drawYamchaHero(moving);
     ctx.restore();
   } else if (spriteLoaded) {
     ctx.save();

@@ -45,7 +45,7 @@ const CHARACTERS = {
       { id: 'kireserva', stars: 3, name: 'Reserva de Ki', desc: '+20% de Ki máximo y de recarga.' },
       { id: 'evade', stars: 4, name: 'Reflejos', desc: '+5% de evasión.' }
     ],
-    portrait: 'assets/enemigos/yamcha/idle.png',
+    portrait: 'assets/personajes/yamcha/portrait.png',
     base: { hp: 115, fuerza: 1.1, velocidad: 0.95, magnet: 1.0, recarga: 1.0, evasion: 0.03, energia: 1.0, ki: 100 }
   }
 };

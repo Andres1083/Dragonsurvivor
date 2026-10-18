@@ -100,9 +100,10 @@ const SKILL_FN = {
   },
   rogafufuken(L) {
     const d = aimDir(240), n = 5 + L, dmg = 7 + L * 3, len = 120 + L * 6;
+    if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
     P.a.punch = 0.2 + n * 0.06;
     for (let i = 0; i < n; i++) pending.push({ t: i * 0.07, fn: () => {
-      if (!P) return; P.a.punch = 0.2;
+      if (!P) return; P.a.punch = 0.2; setPose('roga_' + (1 + i % 6), 0.1);
       const off = (i % 2 ? 1 : -1) * 10;
       fx.push({ k: 'claw', x: P.x + d.dx * 50, y: P.y + d.dy * 50 - 6 + off, a: d.a, t: 0.16, max: 0.16 });
       for (const e of enemies) if (!e.dead && inLine(e, P.x, P.y, d.dx, d.dy, len, 80)) hurtEnemy(e, dmg, d.dx, d.dy, 90);
@@ -111,6 +112,8 @@ const SKILL_FN = {
   katana(L) {
     const d = aimDir(320), dist = 150 + L * 12, dmg = 30 + L * 12;
     P.a.punch = 0.3;
+    if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
+    for (let i = 0; i < 5; i++) pending.push({ t: i * 0.07, fn: () => setPose('katana_' + (1 + i), i === 4 ? 0.2 : 0.09) });
     const x0 = P.x, y0 = P.y;
     fx.push({ k: 'katana', x: x0, y: y0 - 10, a: d.a, len: dist, t: 0.28, max: 0.28 });
     for (const e of enemies) if (!e.dead && inLine(e, x0, y0, d.dx, d.dy, dist, 56)) hurtEnemy(e, dmg, d.dx, d.dy, 200);
@@ -137,9 +140,14 @@ const SKILL_FN = {
   },
   lanzacohetes(L) {
     const d = aimDir(500);
+    if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
     P.a.ki = 0.3;
-    rockets.push({ x: P.x + d.dx * 20, y: P.y - 10 + d.dy * 20, vx: d.dx * 330, vy: d.dy * 330, life: 1.6, R: 85 + L * 9, dmg: 45 + L * 16 });
-    sfxBeep(120, 0.15, 'sawtooth');
+    // secuencia de la bazuca: sacar, apuntar, disparar (cuadro 6) y humo
+    for (let i = 0; i < 10; i++) pending.push({ t: i * 0.075, fn: () => setPose('bazo_' + (1 + i), 0.09) });
+    pending.push({ t: 0.38, fn: () => {
+      if (!P) return;
+      rockets.push({ x: P.x + d.dx * 20, y: P.y - 18 + d.dy * 20, vx: d.dx * 330, vy: d.dy * 330, life: 1.6, R: 85 + L * 9, dmg: 45 + L * 16 });
+      sfxBeep(120, 0.15, 'sawtooth'); shake = Math.max(shake, 0.1); } });
   }
 };
 function useDodge() {
@@ -260,9 +268,11 @@ function drawSkillProjectiles() {
   const st = skillImg.baculo;
   for (const b of boomers) { if (!st.complete) continue; ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.imageSmoothingEnabled = false; ctx.drawImage(st, -st.naturalWidth * 1.2, -34, st.naturalWidth * 2.4, 68); ctx.restore(); }
   for (const r of rockets) {
-    ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(Math.atan2(r.vy, r.vx));
-    ctx.fillStyle = '#8a8f9c'; ctx.fillRect(-9, -3, 16, 6); ctx.fillStyle = '#d9323c'; ctx.beginPath(); ctx.moveTo(7, -3); ctx.lineTo(13, 0); ctx.lineTo(7, 3); ctx.fill();
-    ctx.fillStyle = '#ffd23f'; ctx.beginPath(); ctx.moveTo(-9, -2); ctx.lineTo(-17 - Math.random() * 4, 0); ctx.lineTo(-9, 2); ctx.fill(); ctx.restore();
+    const im = yam['rocket_' + (1 + Math.floor(time * 20) % 2)];
+    ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(Math.atan2(r.vy, r.vx)); ctx.imageSmoothingEnabled = false;
+    if (yamReady(im)) ctx.drawImage(im, -im.naturalWidth * 0.8, -im.naturalHeight * 0.8, im.naturalWidth * 1.6, im.naturalHeight * 1.6);
+    else { ctx.fillStyle = '#8a8f9c'; ctx.fillRect(-9, -3, 16, 6); }
+    ctx.restore();
   }
 }
 
