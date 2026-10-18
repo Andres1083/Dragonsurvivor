@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Dragonsurvivor</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20261018b">
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -121,20 +121,25 @@
   <button class="btn" id="b-over-menu">Menú</button>
 </div>
 
-<script src="js/core.js"></script>
-<script src="js/input.js"></script>
-<script src="js/world.js"></script>
-<script src="js/characters/goku_kid.js"></script>
-<script src="js/characters/registry.js"></script>
-<script src="js/game.js"></script>
-<script src="js/upgrades.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/skills.js"></script>
-<script src="js/gear.js"></script>
-<script src="js/update.js"></script>
-<script src="js/render.js"></script>
-<script src="js/gacha.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<div id="build-ver" style="position:fixed;right:6px;bottom:3px;font:10px monospace;color:#fff8;z-index:5;pointer-events:none">build 20261018b</div>
+<script>window.BUILD_V = "20261018b";
+(function () { const d = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+  Object.defineProperty(HTMLImageElement.prototype, "src", { get() { return d.get.call(this); },
+    set(v) { if (typeof v === "string" && v.indexOf("assets/") === 0 && v.indexOf("?") < 0) v += "?v=" + window.BUILD_V; d.set.call(this, v); } }); })();</script>
+<script src="js/core.js?v=20261018b"></script>
+<script src="js/input.js?v=20261018b"></script>
+<script src="js/world.js?v=20261018b"></script>
+<script src="js/characters/goku_kid.js?v=20261018b"></script>
+<script src="js/characters/registry.js?v=20261018b"></script>
+<script src="js/game.js?v=20261018b"></script>
+<script src="js/upgrades.js?v=20261018b"></script>
+<script src="js/combat.js?v=20261018b"></script>
+<script src="js/skills.js?v=20261018b"></script>
+<script src="js/gear.js?v=20261018b"></script>
+<script src="js/update.js?v=20261018b"></script>
+<script src="js/render.js?v=20261018b"></script>
+<script src="js/gacha.js?v=20261018b"></script>
+<script src="js/ui.js?v=20261018b"></script>
+<script src="js/main.js?v=20261018b"></script>
 </body>
 </html>
