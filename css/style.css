@@ -53,7 +53,13 @@ p { margin:0; max-width:560px; line-height:1.4; color:#f1ecd2; }
 .char-tile .rarity {
   font-size:10px; font-weight:700; padding:1px 6px; border-radius:5px; background:#5a8fd4; color:#fff;
 }
+.char-tile .rarity.N { background:#7d8794; }
+.char-tile .rarity.R { background:#4caf6a; }
 .char-tile .rarity.SR { background:#9b59d6; }
+.char-tile.r-N { border-color:#8a929e; }
+.char-tile.r-R { border-color:#4caf6a; }
+.char-tile.r-SR { border-color:#9b59d6; }
+.char-tile.r-N:hover, .char-tile.r-N.active, .char-tile.r-R:hover, .char-tile.r-R.active, .char-tile.r-SR:hover, .char-tile.r-SR.active { border-color:var(--gold); }
 .char-tile .rarity.SSR { background:#e6a817; color:#1b1b2f; }
 
 .char-detail {
@@ -73,6 +79,8 @@ p { margin:0; max-width:560px; line-height:1.4; color:#f1ecd2; }
   display:inline-block; font-size:11px; font-weight:700; padding:2px 8px;
   border-radius:6px; background:#5a8fd4; color:#fff; margin-top:4px;
 }
+.char-detail .hd .meta .rarity.N { background:#7d8794; }
+.char-detail .hd .meta .rarity.R { background:#4caf6a; }
 .char-detail .hd .meta .rarity.SR { background:#9b59d6; }
 .char-detail .hd .meta .rarity.SSR { background:#e6a817; color:#1b1b2f; }
 .char-detail .desc { font-size:13px; color:#a8b8d0; margin-bottom:14px; font-style:italic; }

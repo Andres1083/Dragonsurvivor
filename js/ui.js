@@ -121,11 +121,11 @@ function renderCharList() {
   list.forEach(c => {
     const tile = document.createElement('button');
     tile.type = 'button';
-    tile.className = 'char-tile' + (c.id === selectedCharId ? ' active' : '');
+    tile.className = 'char-tile r-' + (c.rarity || 'N') + (c.id === selectedCharId ? ' active' : '');
     tile.innerHTML =
       (c.portrait ? `<img src="${c.portrait}" alt="">` : '') +
       `<span class="name">${c.name}</span>` +
-      `<span class="rarity ${c.rarity || ''}">${c.rarity || '?'}</span>`;
+      `<span class="rarity ${c.rarity || ''}" title="${RARITY_NAMES[c.rarity] || ''}">${c.rarity || '?'}</span>`;
     tile.onclick = () => {
       selectedCharId = c.id;
       renderCharList();
@@ -187,7 +187,7 @@ function renderCharDetail() {
   panel.innerHTML =
     `<div class="hd">` +
       (c.portrait ? `<img src="${c.portrait}" alt="">` : '') +
-      `<div class="meta"><b>${c.name}</b><span class="rarity ${c.rarity || ''}">${c.rarity || '?'}</span></div>` +
+      `<div class="meta"><b>${c.name}</b><span class="rarity ${c.rarity || ''}">${c.rarity || '?'} · ${RARITY_NAMES[c.rarity] || ''}</span></div>` +
     `</div>` +
     (c.description ? `<div class="desc">${c.description}</div>` : '') +
     `<div class="cd-tabs">` + tabs.map(([k, n]) => `<button type="button" class="btn btn-sm${k === charTab ? ' tab-on' : ''}" data-tab="${k}">${n}</button>`).join('') + `</div>` +

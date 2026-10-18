@@ -5,7 +5,7 @@ const CHARACTERS = {
   goku_kid: {
     id: 'goku_kid',
     name: 'Kid Goku',
-    rarity: 'R',
+    rarity: 'N',
     description: 'El pequeño guerrero saiyajin. Equilibrado y listo para pelear.',
     unlocked: true,
     dodge: true,     // tiene Esquiva (impulso con invulnerabilidad breve)
@@ -34,7 +34,7 @@ const CHARACTERS = {
   yamcha: {
     id: 'yamcha',
     name: 'Yamcha',
-    rarity: 'SR',
+    rarity: 'R',
     description: 'Bandido del desierto y maestro del Puño del Colmillo de Lobo. Más fuerte, algo más lento.',
     unlocked: false,           // se consigue con copias del gacha
     energy: true,
@@ -64,6 +64,8 @@ const STAT_DEFS = [
 
 let currentCharacterId = 'goku_kid';
 let selectedCharId = 'goku_kid';
+
+const RARITY_NAMES = { N: 'Común', R: 'Poco común', SR: 'Rara', SSR: 'Épica' };
 
 function getCurrentCharacter() {
   return CHARACTERS[currentCharacterId] || CHARACTERS.goku_kid;
