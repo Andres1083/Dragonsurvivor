@@ -7,7 +7,20 @@ const PACKS = [
   { id: 'legendary', name: 'Sobre Legendario', img: 'assets/gacha/packs/pack_legendary.png' },
   { id: 'mythic',    name: 'Sobre Mítico',    img: 'assets/gacha/packs/pack_mythic.png' }
 ];
-let packSel = 0, packBusy = false;
+let packSel = 0, packBusy = false, swiped = false;
+(function () {
+  const st = document.getElementById('cf-stage'); let x0 = null;
+  st.addEventListener('pointerdown', e => { x0 = e.clientX; swiped = false; });
+  const end = e => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0; x0 = null;
+    if (!packBusy && Math.abs(dx) > 35) {
+      swiped = true; setTimeout(() => { swiped = false; }, 300);
+      packSel = Math.max(0, Math.min(PACKS.length - 1, packSel + (dx < 0 ? 1 : -1))); layoutPacks();
+    }
+  };
+  st.addEventListener('pointerup', end); st.addEventListener('pointercancel', () => { x0 = null; });
+})();
 
 function renderPacks() {
   const st = document.getElementById('cf-stage');
@@ -16,7 +29,7 @@ function renderPacks() {
       const c = document.createElement('div');
       c.className = 'cf-card' + (p.open ? '' : ' locked');
       c.innerHTML = '<img src="' + p.img + '" alt="' + p.name + '">' + (p.open ? '' : '<div class="cf-lock">🔒</div>');
-      c.onclick = () => { if (packBusy) return; if (i === packSel) packOpen(); else { packSel = i; layoutPacks(); } };
+      c.onclick = () => { if (packBusy || swiped) return; if (i === packSel) packOpen(); else { packSel = i; layoutPacks(); } };
       st.appendChild(c);
     });
   }
@@ -29,13 +42,12 @@ function layoutPacks() {
   [...st.children].forEach((c, i) => {
     const d = i - packSel;
     let tf, op = 1;
-    if (d < 0) { tf = 'translateX(' + (-cw * 1.2) + 'px) scale(.7)'; op = 0; }
-    else if (d === 0) tf = 'translateX(0) translateZ(60px)';
+    if (d === 0) tf = 'translateX(0) translateZ(60px)';
+    else if (d < 0) tf = 'translateX(' + (-cw * 0.55 + d * cw * 0.6) + 'px) translateZ(' + (60 * d) + 'px) rotateY(42deg) scale(' + (1 + d * 0.04) + ')';
     else tf = 'translateX(' + (cw * 0.55 + d * cw * 0.6) + 'px) translateZ(' + (-60 * d) + 'px) rotateY(-42deg) scale(' + (1 - d * 0.04) + ')';
-    c.style.transform = tf; c.style.opacity = op; c.style.zIndex = 20 - d; c.style.pointerEvents = d < 0 ? 'none' : '';
+    c.style.transform = tf; c.style.opacity = op; c.style.zIndex = 20 - d; 
     c.classList.toggle('sel', d === 0);
   });
-  document.getElementById('cf-name').textContent = PACKS[packSel].name + (PACKS[packSel].open ? '' : ' · bloqueado');
 }
 
 function packsInput(left, right, ok) {
