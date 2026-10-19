@@ -13,9 +13,14 @@ const SKILLS = {
   patada_creciente: { name: 'Patada creciente',  cd: 6,  cost: 25, icon: 'crescent', desc: 'Patada en arco que golpea y empuja a los enemigos de frente.' },
   rafaga_punos:     { name: 'Ráfaga de puños',   cd: 8,  cost: 30, icon: 'barrage', desc: 'Lluvia de puñetazos rápidos al frente.' },
   patada_voladora:  { name: 'Patada voladora',   cd: 11, cost: 35, icon: 'flykick', desc: 'Se lanza en línea recta con una patada que atraviesa enemigos.' },
+  kamehameha:       { name: 'Kamehameha',        cd: 14, cost: 50, icon: 'kame',    desc: 'Carga una onda de ki y la dispara en línea recta; explota al final. Dorada en nivel 4+.' },
   lanzacohetes:     { name: 'Lanzacohetes',      cd: 14, cost: 45, icon: 'rocket',  desc: 'Cohete explosivo que daña en área.' }
 };
 const skillImg = {};
+const kameImg = {};
+for (const n of ['b', 'y']) for (const k of ['ell', 'C1', 'top1', 'bot1', 'D1', 'C2', 'top2', 'bot2', 'D2']) { const i = new Image(); i.src = 'assets/skills/kame/' + n + '_' + k + '.png'; kameImg[n + '_' + k] = i; }
+for (let j = 0; j < 6; j++) { const i = new Image(); i.src = 'assets/skills/kame/ball_' + j + '.png'; kameImg['ball_' + j] = i; }
+for (let j = 1; j <= 5; j++) { const i = new Image(); i.src = 'assets/skills/kame/expl_' + j + '.png'; kameImg['expl_' + j] = i; }
 /* Esquiva (solo Goku niño): impulso corto con invulnerabilidad breve; usa la pose y las estelas de la hoja de Kid Goku */
 const DODGE = { cd: 6, cost: 12, dist: 125, time: 0.22, inv: 0.45 };
 const dodgeImg = new Image(); dodgeImg.src = 'assets/personajes/goku_kid/dodge.png';
@@ -36,7 +41,7 @@ function equippedSkills(charId) {
 }
 
 let boomers = [], rockets = [];
-const SKILL_AUTO_RANGE = { baculo_sagrado: 150, baculo_giro: 110, baculo_boomerang: 260, rogafufuken: 120, katana: 170, lanzacohetes: 300, jankenpon: 110, patada_creciente: 120, rafaga_punos: 110, patada_voladora: 200 };
+const SKILL_AUTO_RANGE = { baculo_sagrado: 150, baculo_giro: 110, baculo_boomerang: 260, rogafufuken: 120, katana: 170, lanzacohetes: 300, jankenpon: 110, patada_creciente: 120, rafaga_punos: 110, patada_voladora: 200, kamehameha: 330 };
 function activePassives(charId) { const ch = CHARACTERS[charId], c = getCopies(charId); return ch && ch.passives ? ch.passives.filter(p => c >= p.stars) : []; }
 function applyPassives() {
   P.pas = {};
@@ -178,6 +183,27 @@ const SKILL_FN = {
     P.x += d.dx * dist; P.y += d.dy * dist; P.inv = Math.max(P.inv, 0.25);
     sfxBeep(700, 0.08, 'sawtooth'); shake = Math.max(shake, 0.1);
   },
+  kamehameha(L) {
+    const d = aimDir(450), len = 300 + L * 30, dmg = 7 + L * 3, gold = L >= 4;
+    P.lockT = 1.5; P.a.punch = 0;
+    for (let i = 0; i < 4; i++) pending.push({ t: i * 0.13, fn: () => setPose('kame_' + (1 + i), 0.14) });
+    fx.push({ k: 'kameball', t: 0.55, max: 0.55 });
+    sfxBeep(300, 0.3, 'sine');
+    pending.push({ t: 0.55, fn: () => {
+      if (!P) return;
+      setPose('kame_5', 0.85); shake = Math.max(shake, 0.12); sfxBeep(160, 0.5, 'sawtooth');
+      fx.push({ k: 'kame', a: d.a, len, gold, t: 0.85, max: 0.85 });
+      for (let j = 0; j < 7; j++) pending.push({ t: 0.08 + j * 0.1, fn: () => {
+        if (!P) return;
+        for (const e of enemies) if (!e.dead && inLine(e, P.x + d.dx * 20, P.y - 18, d.dx, d.dy, len, 64)) hurtEnemy(e, dmg, d.dx, d.dy, 70, true); } });
+      pending.push({ t: 0.7, fn: () => {
+        if (!P) return;
+        const ex = P.x + d.dx * len, ey = P.y - 18 + d.dy * len, R = 85 + L * 6;
+        fx.push({ k: 'kameexp', x: ex, y: ey, t: 0.45, max: 0.45, gold });
+        for (const e of enemies) if (!e.dead && (e.x - ex) ** 2 + (e.y - ey) ** 2 < (R + e.r) ** 2) hurtEnemy(e, 22 + L * 9, e.x - ex, e.y - ey, 260, true);
+        shake = Math.max(shake, 0.25); sfxBeep(90, 0.3, 'sawtooth'); } });
+    } });
+  },
   lanzacohetes(L) {
     const d = aimDir(500);
     if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
@@ -293,6 +319,43 @@ function drawSkillFx(f) {
     ctx.restore();
     return true;
   }
+  if (f.k === 'kameball') {   // bola de carga en las manos
+    const j = Math.min(5, Math.floor(k * 6)), im = kameImg['ball_' + j];
+    if (im && im.complete && im.naturalWidth) {
+      const sc = 0.55, w = im.naturalWidth * sc, h = im.naturalHeight * sc;
+      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = 0.95;
+      ctx.drawImage(im, P.x + P.face * 14 - w / 2, P.y - 20 - h / 2, w, h); ctx.restore();
+    }
+    return true;
+  }
+  if (f.k === 'kame') {   // rayo: bulbo de salida + tiras + bulbo de punta (hojas del usuario), relleno blanco
+    const set = f.gold ? 'y_' : 'b_', n = (Math.floor(time * 18) % 2) + 1, im = id => kameImg[set + id];
+    const C = im('C' + n), D = im('D' + n), T = im('top' + n), B = im('bot' + n), E = im('ell');
+    if (!(C && D && T && B && C.complete && D.complete && T.complete && B.complete && C.naturalWidth && D.naturalWidth && T.naturalWidth && B.naturalWidth)) return true;
+    const sc = 0.5, grow = Math.min(1, k * 9), fade = k > 0.8 ? 1 - (k - 0.8) / 0.2 : 1, thick = k > 0.8 ? fade : 1;
+    const L0 = f.len / sc * grow;
+    ctx.save(); ctx.translate(P.x + Math.cos(f.a) * 18, P.y - 18 + Math.sin(f.a) * 18); ctx.rotate(f.a); ctx.scale(sc, sc * 1.3 * thick); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = fade;
+    const cw = C.naturalWidth, dw = D.naturalWidth, xs = L0 - dw;
+    const col = f.gold ? ['#fff3a0', '#ffd23a'] : ['#e6fbff', '#9fe3f5'];
+    const g = ctx.createLinearGradient(0, -26, 0, 26); g.addColorStop(0, col[1]); g.addColorStop(0.3, col[0]); g.addColorStop(0.5, '#fff'); g.addColorStop(0.7, col[0]); g.addColorStop(1, col[1]);
+    ctx.fillStyle = g; ctx.fillRect(cw * 0.4, -26, Math.max(0, xs + dw * 0.5 - cw * 0.4), 52);
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(cw * 0.55, 0, cw * 0.42, C.naturalHeight * 0.4, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(L0 - dw * 0.5, 0, dw * 0.42, D.naturalHeight * 0.4, 0, 0, TAU); ctx.fill();
+    for (let x = cw - 4; x < xs + 4; x += T.naturalWidth - 1) { ctx.drawImage(T, x, -26.5); ctx.drawImage(B, x, 11.5); }
+    ctx.drawImage(C, 0, -C.naturalHeight / 2); ctx.drawImage(D, xs, -D.naturalHeight / 2);
+    if (k < 0.25 && E && E.complete && E.naturalWidth) ctx.drawImage(E, -E.naturalWidth * 0.4, -E.naturalHeight / 2);
+    ctx.restore();
+    return true;
+  }
+  if (f.k === 'kameexp') {   // explosión al final del rayo (hojas del usuario)
+    const j = Math.min(5, 1 + Math.floor(k * 5)), im = kameImg['expl_' + j];
+    if (im && im.complete && im.naturalWidth) {
+      const sc = 0.9, w = im.naturalWidth * sc, h = im.naturalHeight * sc;
+      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = 1 - k * 0.4; ctx.drawImage(im, f.x - w / 2, f.y - h / 2, w, h); ctx.restore();
+    }
+    return true;
+  }
   if (f.k === 'packget') {   // sobre pequeño que sube al recogerlo de una cápsula
     const im = typeof packIcon !== 'undefined' && packIcon[f.pack];
     if (im && im.complete && im.naturalWidth) {
@@ -340,7 +403,7 @@ const SKILL_ICON = {
   staff:  '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(45deg) scale(1.1)">',
   spin:   '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(-30deg)"><b class="sk-sym">⟳</b>',
   boom:   '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(60deg)"><b class="sk-sym">↺</b>',
-  wolf:   '<b class="sk-emoji">🐺</b>', jkp: '<b class="sk-emoji">✊</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>',
+  wolf:   '<b class="sk-emoji">🐺</b>', jkp: '<b class="sk-emoji">✊</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>', kame: '<img src="assets/skills/kame/ball_3.png" style="width:30px;height:30px">',
   crescent: '<b class="sk-emoji">🦵</b>', barrage: '<b class="sk-emoji">👊</b>', flykick: '<b class="sk-emoji">🥋</b>'
 };
 function buildSkillBar() {

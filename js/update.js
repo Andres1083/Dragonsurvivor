@@ -2,7 +2,8 @@
 function update(dt) {
   time += dt;
   // movimiento
-  const [mx, my] = moveVec(); P.moving = !!(mx || my);
+  if (P.lockT > 0) P.lockT -= dt;
+  const [mx, my] = P.lockT > 0 ? [0, 0] : moveVec(); P.moving = !!(mx || my);
   P.water = terrain(Math.floor(P.x / T), Math.floor(P.y / T)) === 'water';
   const sp = P.speed * (P.water ? 0.55 : 1);
   if (P.moving) { P.x += mx * sp * dt; P.y += my * sp * dt; P.walk += dt * (P.water ? 7 : 11); P.dx = mx; P.dy = my; if (Math.abs(mx) > 0.15) P.face = mx > 0 ? 1 : -1; }

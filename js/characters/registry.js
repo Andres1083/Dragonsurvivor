@@ -55,7 +55,7 @@ const CHARACTERS = {
     description: 'El guerrero saiyajin ya adulto, con el gi naranja de la Tortuga. Combate cuerpo a cuerpo: patadas, ráfagas de puños y vuelo.',
     unlocked: false,           // se consigue en los sobres
     energy: true,
-    skills: ['patada_creciente', 'rafaga_punos', 'patada_voladora'],
+    skills: ['patada_creciente', 'rafaga_punos', 'patada_voladora', 'kamehameha'],
     passives: [
       { id: 'instinto', stars: 1, name: 'Entrenamiento de la Tortuga', desc: '+8% de daño físico.' },
       { id: 'resist', stars: 2, name: 'Cuerpo curtido', desc: '+10% de vida máxima.' },
