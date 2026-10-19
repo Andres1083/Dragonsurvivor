@@ -45,7 +45,7 @@ function layoutPacks() {
     if (d === 0) tf = 'translateX(0) translateZ(60px)';
     else if (d < 0) tf = 'translateX(' + (-cw * 0.55 + d * cw * 0.6) + 'px) translateZ(' + (60 * d) + 'px) rotateY(42deg) scale(' + (1 + d * 0.04) + ')';
     else tf = 'translateX(' + (cw * 0.55 + d * cw * 0.6) + 'px) translateZ(' + (-60 * d) + 'px) rotateY(-42deg) scale(' + (1 - d * 0.04) + ')';
-    c.style.transform = tf; c.style.opacity = op; c.style.zIndex = 20 - d; 
+    c.style.transform = tf; c.style.opacity = op; c.style.zIndex = 20 - Math.abs(d); 
     c.classList.toggle('sel', d === 0);
   });
 }
