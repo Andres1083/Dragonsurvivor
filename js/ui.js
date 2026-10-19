@@ -277,7 +277,7 @@ let deathTimer = null;
 function playDeathAnim() {
   const img = document.getElementById('over-sprite'); if (!img) return;
   clearInterval(deathTimer);
-  const dd = { goku_kid: ['goku_kid', 3], yamcha: ['yamcha', 4] }[P && P.charId];
+  const dd = { goku_kid: ['goku_kid', 3], yamcha: ['yamcha', 4], goku_adulto: ['goku_adulto', 4] }[P && P.charId];
   if (!dd) { img.hidden = true; return; }
   const frames = Array.from({ length: dd[1] }, (_, i) => 'assets/personajes/' + dd[0] + '/death_' + (i + 1) + '.png');
   let i = 0; img.hidden = false; img.src = frames[0];

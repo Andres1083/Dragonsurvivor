@@ -51,6 +51,10 @@ function drawHero() {
     ctx.save(); ctx.scale(f, 1); ctx.imageSmoothingEnabled = false;
     drawYamchaHero(moving);
     ctx.restore();
+  } else if (P.charId === 'goku_adulto' && typeof drawGokuAdultoHero === 'function') {
+    ctx.save(); ctx.scale(f, 1); ctx.imageSmoothingEnabled = false;
+    drawGokuAdultoHero(moving);
+    ctx.restore();
   } else if (spriteLoaded) {
     ctx.save();
     ctx.scale(f, 1);

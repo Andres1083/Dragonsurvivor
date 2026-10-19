@@ -60,8 +60,12 @@ function update(dt) {
       g.got = true;
       if (g.magnet || g.capsule) {
         let r = g.magnet ? 0 : Math.random();
-        if (r < 0.5) { for (const o of gems) o.pull = true; addText(P.x, P.y - 34, '¡Imán!', '#9fe8ff', 1.3); sfxBeep(760, 0.12, 'triangle'); }
-        else if (r < 0.8) { const z = 10 + (Math.random() * 11 | 0); addZeni(z); addText(P.x, P.y - 34, '+' + z + ' Z', '#ffe566'); }
+        if (g.capsule && r >= 0.75) {   // sobre de personajes
+          const pk = Math.random() < 0.8 ? 'normal' : 'epic';
+          addPack(pk, 1); fx.push({ k: 'packget', pack: pk, t: 1.4, max: 1.4 });
+          addText(P.x, P.y - 34, '+ Sobre ' + (pk === 'epic' ? 'Épico' : 'Normal'), pk === 'epic' ? '#d9a8ff' : '#8ec8ff', 1.5); sfxBeep(980, 0.14, 'triangle');
+        } else if (r < 0.3) { for (const o of gems) o.pull = true; addText(P.x, P.y - 34, '¡Imán!', '#9fe8ff', 1.3); sfxBeep(760, 0.12, 'triangle'); }
+        else if (r < 0.55) { const z = 10 + (Math.random() * 11 | 0); addZeni(z); addText(P.x, P.y - 34, '+' + z + ' Z', '#ffe566'); }
         else { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * 0.3); addText(P.x, P.y - 34, '+vida', '#7dffa0'); }
         if (g.capsule) burst(g.x, g.y, '#ffffff', 10, 180);
       } else if (g.meat) {

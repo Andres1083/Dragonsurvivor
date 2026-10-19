@@ -305,3 +305,6 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
 #pack-reward[hidden] { display: none; }
 #pack-reward img { height: min(40vh, 260px); image-rendering: pixelated; filter: drop-shadow(0 0 20px rgba(255,220,120,.6)); }
 #pack-reward .good { font-size: 22px; font-weight: 800; color: #ffe566; }
+
+.cf-badge { position: absolute; right: 4px; top: 4px; background: #ffd23a; color: #3a2400; font-weight: 800; font-size: 16px; padding: 2px 9px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.cf-badge[hidden] { display: none; }

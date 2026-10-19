@@ -10,6 +10,9 @@ const SKILLS = {
   rogafufuken:      { name: 'Rōgafūfūken',       cd: 7, cost: 30,  icon: 'wolf',    desc: 'Ráfaga de zarpazos del Puño del Colmillo de Lobo.' },
   katana:           { name: 'Katana',            cd: 10, cost: 35, icon: 'katana',  desc: 'Embestida con tajo que corta todo en línea recta.' },
   jankenpon:        { name: '¡Jan-Ken-Pon!',    cd: 8,  cost: 20, icon: 'jkp',     desc: 'Piedra, papel o tijera al azar: golpe fuerte, área o doble tajo.' },
+  patada_creciente: { name: 'Patada creciente',  cd: 6,  cost: 25, icon: 'crescent', desc: 'Patada en arco que golpea y empuja a los enemigos de frente.' },
+  rafaga_punos:     { name: 'Ráfaga de puños',   cd: 8,  cost: 30, icon: 'barrage', desc: 'Lluvia de puñetazos rápidos al frente.' },
+  patada_voladora:  { name: 'Patada voladora',   cd: 11, cost: 35, icon: 'flykick', desc: 'Se lanza en línea recta con una patada que atraviesa enemigos.' },
   lanzacohetes:     { name: 'Lanzacohetes',      cd: 14, cost: 45, icon: 'rocket',  desc: 'Cohete explosivo que daña en área.' }
 };
 const skillImg = {};
@@ -33,7 +36,7 @@ function equippedSkills(charId) {
 }
 
 let boomers = [], rockets = [];
-const SKILL_AUTO_RANGE = { baculo_sagrado: 150, baculo_giro: 110, baculo_boomerang: 260, rogafufuken: 120, katana: 170, lanzacohetes: 300, jankenpon: 110 };
+const SKILL_AUTO_RANGE = { baculo_sagrado: 150, baculo_giro: 110, baculo_boomerang: 260, rogafufuken: 120, katana: 170, lanzacohetes: 300, jankenpon: 110, patada_creciente: 120, rafaga_punos: 110, patada_voladora: 200 };
 function activePassives(charId) { const ch = CHARACTERS[charId], c = getCopies(charId); return ch && ch.passives ? ch.passives.filter(p => c >= p.stars) : []; }
 function applyPassives() {
   P.pas = {};
@@ -141,6 +144,39 @@ const SKILL_FN = {
         sfxBeep(700, 0.05, 'sawtooth'); } });
     }
     sfxBeep(350, 0.08, 'square');
+  },
+  patada_creciente(L) {
+    const d = aimDir(200), R = 105 + L * 9, dmg = 26 + L * 11;
+    P.a.punch = 0.4;
+    for (let i = 0; i < 4; i++) pending.push({ t: i * 0.07, fn: () => setPose('crea_' + (1 + i), i === 3 ? 0.2 : 0.08) });
+    pending.push({ t: 0.12, fn: () => {
+      if (!P) return;
+      for (const e of enemies) if (!e.dead) {
+        const rx = e.x - P.x, ry = e.y - P.y, dd = Math.hypot(rx, ry) || 1;
+        if (dd < R + e.r && (rx * d.dx + ry * d.dy) / dd > -0.15) { hurtEnemy(e, dmg, d.dx, d.dy, 300); burst(e.x, e.y, '#ffffff', 6, 180); }
+      }
+      fx.push({ k: 'ring', x: P.x + d.dx * 40, y: P.y + d.dy * 40, t: 0.22, max: 0.22, r: R * 0.7 });
+      sfxBeep(300, 0.1, 'sawtooth'); shake = Math.max(shake, 0.1); } });
+  },
+  rafaga_punos(L) {
+    const d = aimDir(220), n = 6 + L, dmg = 6 + L * 3, len = 110 + L * 5;
+    P.a.punch = 0.2 + n * 0.06;
+    for (let i = 0; i < n; i++) pending.push({ t: i * 0.07, fn: () => {
+      if (!P) return; P.a.punch = 0.2; setPose('raf_' + (1 + i % 6), 0.1);
+      const off = (i % 2 ? 1 : -1) * 9;
+      fx.push({ k: 'fist', x: P.x + d.dx * 48, y: P.y + d.dy * 48 - 8 + off, t: 0.12, max: 0.12, r: 24 });
+      for (const e of enemies) if (!e.dead && inLine(e, P.x, P.y, d.dx, d.dy, len, 80)) hurtEnemy(e, dmg, d.dx, d.dy, 80);
+      sfxBeep(450 + i * 35, 0.04, 'square'); } });
+  },
+  patada_voladora(L) {
+    const d = aimDir(320), dist = 165 + L * 12, dmg = 30 + L * 12;
+    P.a.punch = 0.35;
+    for (let i = 0; i < 5; i++) pending.push({ t: i * 0.07, fn: () => setPose('vol_' + (1 + i), i === 4 ? 0.2 : 0.09) });
+    const x0 = P.x, y0 = P.y;
+    for (let k = 0; k <= 4; k++) burst(x0 + d.dx * dist * k / 4, y0 + d.dy * dist * k / 4 - 10, '#ffffff', 3, 90);
+    for (const e of enemies) if (!e.dead && inLine(e, x0, y0, d.dx, d.dy, dist, 60)) hurtEnemy(e, dmg, d.dx, d.dy, 220);
+    P.x += d.dx * dist; P.y += d.dy * dist; P.inv = Math.max(P.inv, 0.25);
+    sfxBeep(700, 0.08, 'sawtooth'); shake = Math.max(shake, 0.1);
   },
   lanzacohetes(L) {
     const d = aimDir(500);
@@ -257,6 +293,15 @@ function drawSkillFx(f) {
     ctx.restore();
     return true;
   }
+  if (f.k === 'packget') {   // sobre pequeño que sube al recogerlo de una cápsula
+    const im = typeof packIcon !== 'undefined' && packIcon[f.pack];
+    if (im && im.complete && im.naturalWidth) {
+      ctx.save(); ctx.globalAlpha = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+      const w = im.naturalWidth * 0.8, h = im.naturalHeight * 0.8;
+      ctx.drawImage(im, P.x - w / 2, P.y - 50 - k * 30 - h / 2, w, h); ctx.restore();
+    }
+    return true;
+  }
   if (f.k === 'blur') {
     const im = blurImgs[f.n]; if (im.complete && im.naturalWidth) { ctx.save(); ctx.globalAlpha = 0.9 * (1 - k); ctx.translate(f.x - Math.cos(f.a) * (20 + 36 * k), f.y - Math.sin(f.a) * (20 + 36 * k)); ctx.rotate(f.a); ctx.imageSmoothingEnabled = false; ctx.scale(1.4, 1.4); ctx.drawImage(im, -im.naturalWidth / 2, -im.naturalHeight / 2); ctx.restore(); }
     return true;
@@ -295,7 +340,8 @@ const SKILL_ICON = {
   staff:  '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(45deg) scale(1.1)">',
   spin:   '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(-30deg)"><b class="sk-sym">⟳</b>',
   boom:   '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(60deg)"><b class="sk-sym">↺</b>',
-  wolf:   '<b class="sk-emoji">🐺</b>', jkp: '<b class="sk-emoji">✊</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>'
+  wolf:   '<b class="sk-emoji">🐺</b>', jkp: '<b class="sk-emoji">✊</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>',
+  crescent: '<b class="sk-emoji">🦵</b>', barrage: '<b class="sk-emoji">👊</b>', flykick: '<b class="sk-emoji">🥋</b>'
 };
 function buildSkillBar() {
   const bar = document.getElementById('skillbar'); if (!bar) return;

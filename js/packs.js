@@ -1,12 +1,19 @@
 'use strict';
 /* ---------- Lanzamiento de sobres: coverflow ---------- */
 const PACKS = [
-  { id: 'normal',    name: 'Sobre Normal',    img: 'assets/gacha/packs/pack_normal.png',    open: true,
+  { id: 'normal',    name: 'Sobre Normal',    img: 'assets/gacha/packs/pack_normal.png',    open: true, video: 'assets/gacha/packs/pack_open_normal.mp4',
     rates: { N: 80, R: 15, SR: 4.5, SSR: 0.5 } },
-  { id: 'epic',      name: 'Sobre Épico',     img: 'assets/gacha/packs/pack_epic.png' },
+  { id: 'epic',      name: 'Sobre Épico',     img: 'assets/gacha/packs/pack_epic.png',      open: true,
+    rates: { N: 30, R: 40, SR: 27, SSR: 3 } },
   { id: 'legendary', name: 'Sobre Legendario', img: 'assets/gacha/packs/pack_legendary.png' },
   { id: 'mythic',    name: 'Sobre Mítico',    img: 'assets/gacha/packs/pack_mythic.png' }
 ];
+/* sobres conseguidos en las cápsulas de las partidas */
+function getPacks() { return store.get('ds_packs', {}) || {}; }
+function addPack(id, n) { const p = getPacks(); p[id] = (p[id] | 0) + (n || 1); store.set('ds_packs', p); return p[id]; }
+const packIcon = {};
+for (const id of ['normal', 'epic', 'legendary', 'mythic']) { const i = new Image(); i.src = 'assets/gacha/packs/icon_' + id + '.png'; packIcon[id] = i; }
+
 let packSel = 0, packBusy = false, swiped = false;
 (function () {
   const st = document.getElementById('cf-stage'); let x0 = null;
@@ -28,12 +35,19 @@ function renderPacks() {
     PACKS.forEach((p, i) => {
       const c = document.createElement('div');
       c.className = 'cf-card' + (p.open ? '' : ' locked');
-      c.innerHTML = '<img src="' + p.img + '" alt="' + p.name + '">' + (p.open ? '' : '<div class="cf-lock">🔒</div>');
+      c.innerHTML = '<img src="' + p.img + '" alt="' + p.name + '">' + (p.open ? '<span class="cf-badge"></span>' : '<div class="cf-lock">🔒</div>');
       c.onclick = () => { if (packBusy || swiped) return; if (i === packSel) packOpen(); else { packSel = i; layoutPacks(); } };
       st.appendChild(c);
     });
   }
-  packSel = 0; layoutPacks();
+  packSel = 0; layoutPacks(); refreshPackBadges();
+}
+function refreshPackBadges() {
+  const have = getPacks();
+  [...document.getElementById('cf-stage').children].forEach((c, i) => {
+    const b = c.querySelector('.cf-badge'); if (!b) return;
+    const n = have[PACKS[i].id] | 0; b.textContent = '×' + n; b.hidden = n <= 0;
+  });
 }
 
 function layoutPacks() {
@@ -84,11 +98,22 @@ function packOpen() {
     c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
     return;
   }
+  const have = getPacks();
+  if (!TEST_UNLOCK) {   // en modo pruebas la apertura es gratis
+    if ((have[p.id] | 0) <= 0) {
+      const c = document.getElementById('cf-stage').children[packSel];
+      c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+      return;
+    }
+    have[p.id]--; store.set('ds_packs', have);
+  }
   packBusy = true;
   const id = packRoll(p), had = getCopies(id) > 0, n = addCopy(id, 1);
   packResult = { id, label: had ? 'Copia de ' + CHARACTERS[id].name + ' (×' + n + ')' : '¡NUEVO! ' + CHARACTERS[id].name + ' se une al equipo' };
   const fx = document.getElementById('pack-fx'), v = document.getElementById('pack-video'), rw = document.getElementById('pack-reward');
-  rw.hidden = true; fx.hidden = false; v.hidden = false; v.currentTime = 0; v.muted = false;
+  rw.hidden = true; fx.hidden = false;
+  if (!p.video) { packReveal(); return; }   // sin video propio todavía: va directo al resultado
+  v.hidden = false; v.src = p.video; v.currentTime = 0; v.muted = false;
   v.onended = packReveal;
   v.onclick = packSkip;
   v.onerror = packReveal;
@@ -109,7 +134,7 @@ function packReveal() {
 
 function packClose() {
   document.getElementById('pack-fx').hidden = true;
-  packBusy = false;
+  packBusy = false; refreshPackBadges();
   if (typeof refreshZeni === 'function') refreshZeni();
 }
 document.getElementById('b-packs-back').onclick = () => { if (!packBusy) setState('title'); };
