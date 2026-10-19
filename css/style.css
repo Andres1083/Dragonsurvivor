@@ -284,3 +284,24 @@ kbd { background:#fff3; border-radius:5px; padding:1px 6px; }
 .sk-dodge { width: 52px; height: 52px; align-self: flex-end; border-radius: 50%; }
 .sk-dodge .sk-emoji { font-size: 24px; }
 .sk-dodge .sk-cost { display: none; }
+
+/* ----- Lanzamiento de sobres (coverflow) ----- */
+#ov-packs { justify-content: flex-start; padding: 10px 14px; gap: 0; overflow: hidden; }
+.packs-top { align-self: flex-start; z-index: 30; }
+.cf-stage { position: relative; flex: 1; width: 100%; perspective: 1100px; --ph: min(64vh, 460px); }
+.cf-card { position: absolute; top: 50%; left: 5vw; height: var(--ph); width: calc(var(--ph) * .5); margin-top: calc(var(--ph) / -2);
+  transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .35s, filter .35s; cursor: pointer; transform-style: preserve-3d; -webkit-tap-highlight-color: transparent; }
+.cf-card img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0,0,0,.6)); pointer-events: none; }
+.cf-card.sel img { filter: drop-shadow(0 0 22px rgba(255,220,120,.55)) drop-shadow(0 10px 18px rgba(0,0,0,.6)); }
+.cf-card.locked img { filter: grayscale(.85) brightness(.6) drop-shadow(0 10px 18px rgba(0,0,0,.6)); }
+.cf-card .cf-lock { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 40px; text-shadow: 0 2px 8px #000; }
+.cf-card.shake { animation: cfshake .35s; }
+@keyframes cfshake { 25% { margin-left: -8px } 75% { margin-left: 8px } }
+.cf-name { height: 34px; font-weight: 800; color: var(--gold); text-shadow: 0 2px 0 #b3541e; font-size: 20px; padding-bottom: 6px; align-self: flex-start; margin-left: 5vw; }
+#pack-fx { position: fixed; inset: 0; z-index: 100; background: #000; display: flex; align-items: center; justify-content: center; }
+#pack-fx[hidden] { display: none; }
+#pack-video { height: 100%; max-width: 100%; object-fit: contain; }
+#pack-reward { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(10,15,10,.9); }
+#pack-reward[hidden] { display: none; }
+#pack-reward img { height: min(40vh, 260px); image-rendering: pixelated; filter: drop-shadow(0 0 20px rgba(255,220,120,.6)); }
+#pack-reward .good { font-size: 22px; font-weight: 800; color: #ffe566; }

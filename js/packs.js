@@ -1,0 +1,103 @@
+'use strict';
+/* ---------- Lanzamiento de sobres: coverflow ---------- */
+const PACKS = [
+  { id: 'normal',    name: 'Sobre Normal',    img: 'assets/gacha/packs/pack_normal.png',    open: true,
+    rates: { N: 80, R: 15, SR: 4.5, SSR: 0.5 } },
+  { id: 'epic',      name: 'Sobre Épico',     img: 'assets/gacha/packs/pack_epic.png' },
+  { id: 'legendary', name: 'Sobre Legendario', img: 'assets/gacha/packs/pack_legendary.png' },
+  { id: 'mythic',    name: 'Sobre Mítico',    img: 'assets/gacha/packs/pack_mythic.png' }
+];
+let packSel = 0, packBusy = false;
+
+function renderPacks() {
+  const st = document.getElementById('cf-stage');
+  if (!st.children.length) {
+    PACKS.forEach((p, i) => {
+      const c = document.createElement('div');
+      c.className = 'cf-card' + (p.open ? '' : ' locked');
+      c.innerHTML = '<img src="' + p.img + '" alt="' + p.name + '">' + (p.open ? '' : '<div class="cf-lock">🔒</div>');
+      c.onclick = () => { if (packBusy) return; if (i === packSel) packOpen(); else { packSel = i; layoutPacks(); } };
+      st.appendChild(c);
+    });
+  }
+  packSel = 0; layoutPacks();
+}
+
+function layoutPacks() {
+  const st = document.getElementById('cf-stage');
+  const cw = st.firstChild ? st.firstChild.offsetWidth || 200 : 200;
+  [...st.children].forEach((c, i) => {
+    const d = i - packSel;
+    let tf, op = 1;
+    if (d < 0) { tf = 'translateX(' + (-cw * 1.2) + 'px) scale(.7)'; op = 0; }
+    else if (d === 0) tf = 'translateX(0) translateZ(60px)';
+    else tf = 'translateX(' + (cw * 0.55 + d * cw * 0.6) + 'px) translateZ(' + (-60 * d) + 'px) rotateY(-42deg) scale(' + (1 - d * 0.04) + ')';
+    c.style.transform = tf; c.style.opacity = op; c.style.zIndex = 20 - d; c.style.pointerEvents = d < 0 ? 'none' : '';
+    c.classList.toggle('sel', d === 0);
+  });
+  document.getElementById('cf-name').textContent = PACKS[packSel].name + (PACKS[packSel].open ? '' : ' · bloqueado');
+}
+
+function packsInput(left, right, ok) {
+  if (packBusy) {
+    if (ok || tapped.has('Escape') || pad.press.has(1)) { if (document.getElementById('pack-reward').hidden) packSkip(); else if (ok) packClose(); }
+    return;
+  }
+  if (tapped.has('Escape') || pad.press.has(1)) { setState('title'); return; }
+  if (left && packSel > 0) { packSel--; layoutPacks(); }
+  if (right && packSel < PACKS.length - 1) { packSel++; layoutPacks(); }
+  if (ok) {
+    packOpen();
+  }
+}
+
+function packRoll(p) {
+  const r = Math.random() * 100; let acc = 0, rar = 'N';
+  for (const k of ['N', 'R', 'SR', 'SSR']) { acc += p.rates[k]; if (r < acc) { rar = k; break; } }
+  const ids = Object.keys(CHARACTERS);
+  let pool = ids.filter(id => CHARACTERS[id].rarity === rar);
+  // sin personajes de esa rareza todavía: cae al más cercano disponible
+  for (let o = 1; !pool.length && o < 4; o++) {
+    const order = ['N', 'R', 'SR', 'SSR'], k = order.indexOf(rar);
+    pool = ids.filter(id => [order[k - o], order[k + o]].includes(CHARACTERS[id].rarity));
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+let packResult = null;
+function packOpen() {
+  const p = PACKS[packSel];
+  if (!p.open) {
+    const c = document.getElementById('cf-stage').children[packSel];
+    c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    return;
+  }
+  packBusy = true;
+  const id = packRoll(p), had = getCopies(id) > 0, n = addCopy(id, 1);
+  packResult = { id, label: had ? 'Copia de ' + CHARACTERS[id].name + ' (×' + n + ')' : '¡NUEVO! ' + CHARACTERS[id].name + ' se une al equipo' };
+  const fx = document.getElementById('pack-fx'), v = document.getElementById('pack-video'), rw = document.getElementById('pack-reward');
+  rw.hidden = true; fx.hidden = false; v.hidden = false; v.currentTime = 0; v.muted = false;
+  v.onended = packReveal;
+  v.onclick = packSkip;
+  v.onerror = packReveal;
+  const pr = v.play(); if (pr && pr.catch) pr.catch(() => { v.muted = true; const q = v.play(); if (q && q.catch) q.catch(packReveal); });
+}
+
+function packSkip() { const v = document.getElementById('pack-video'); if (!v.hidden) packReveal(); }
+
+function packReveal() {
+  const v = document.getElementById('pack-video'), rw = document.getElementById('pack-reward');
+  if (!packResult) return;
+  v.pause(); v.hidden = true;
+  const ch = CHARACTERS[packResult.id];
+  rw.innerHTML = '<img src="' + ch.portrait + '" alt=""><span class="rarity ' + ch.rarity + '">' + ch.rarity + ' · ' + RARITY_NAMES[ch.rarity] + '</span><span class="good">' + packResult.label + '</span><button class="btn sel" id="b-pack-ok">Continuar</button>';
+  rw.hidden = false; packResult = null;
+  document.getElementById('b-pack-ok').onclick = packClose;
+}
+
+function packClose() {
+  document.getElementById('pack-fx').hidden = true;
+  packBusy = false;
+  if (typeof refreshZeni === 'function') refreshZeni();
+}
+document.getElementById('b-packs-back').onclick = () => { if (!packBusy) setState('title'); };

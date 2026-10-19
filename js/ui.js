@@ -4,6 +4,7 @@ const OV = {
   title: 'ov-title',
   chars: 'ov-chars',
   gacha: 'ov-gacha',
+  packs: 'ov-packs',
   level: 'ov-level',
   pause: 'ov-pause',
   over: 'ov-over'
@@ -21,6 +22,7 @@ function setState(s) {
   }
   if (s === 'chars') renderCharList();
   if (s === 'gacha' && typeof renderGachaScreen === 'function') renderGachaScreen();
+  if (s === 'packs' && typeof renderPacks === 'function') renderPacks();
   const pb = document.getElementById('btn-pause');
   if (pb) pb.hidden = (s !== 'play');
   const sb = document.getElementById('skillbar');
@@ -226,6 +228,8 @@ document.getElementById('b-start').onclick = startRun;
 document.getElementById('b-chars').onclick = () => setState('chars');
 document.getElementById('b-chars-back').onclick = () => setState('title');
 document.getElementById('b-gacha').onclick = () => openGacha();
+document.getElementById('b-packs').onclick = () => setState('packs');
+document.getElementById('b-packs-back').onclick = () => setState('title');
 if (typeof initGachaUI === 'function') initGachaUI();
 document.getElementById('b-again').onclick = startRun;
 document.getElementById('b-over-menu').onclick = () => setState('title');
@@ -254,6 +258,8 @@ function menuInput() {
     if (ok) pick(sel);
     return;
   }
+
+  if (state === 'packs' && typeof packsInput === 'function') { packsInput(left, right, ok); return; }
 
   const bs = menuButtons();
   if (!bs.length) return;

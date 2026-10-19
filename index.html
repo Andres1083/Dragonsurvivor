@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Dragonsurvivor</title>
-<link rel="stylesheet" href="css/style.css?v=20261018e">
+<link rel="stylesheet" href="css/style.css?v=20261019a">
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -19,6 +19,7 @@
     <button class="btn sel" id="b-start">▶ Jugar</button>
     <button class="btn" id="b-chars">👥 Personajes</button>
     <button class="btn" id="b-gacha">🔮 Gachaball</button>
+    <button class="btn" id="b-packs">📦 Lanzamiento de sobres</button>
   </div>
   <p class="small">Mover: <kbd>WASD</kbd> / flechas / stick · Pausa: <kbd>Esc</kbd></p>
   <p class="small" id="t-best"></p>
@@ -98,6 +99,17 @@
   </div>
 </div>
 
+<!-- LANZAMIENTO DE SOBRES (coverflow) -->
+<div class="ov" id="ov-packs">
+  <div class="packs-top"><button class="btn btn-sm" id="b-packs-back">← Volver</button></div>
+  <div class="cf-stage" id="cf-stage"></div>
+  <div class="cf-name" id="cf-name"></div>
+</div>
+<div id="pack-fx" hidden>
+  <video id="pack-video" playsinline preload="auto" src="assets/gacha/packs/pack_open_normal.mp4"></video>
+  <div id="pack-reward" hidden></div>
+</div>
+
 <!-- NIVEL -->
 <div class="ov" id="ov-level">
   <h2>¡Subiste de nivel!</h2>
@@ -121,26 +133,27 @@
   <button class="btn" id="b-over-menu">Menú</button>
 </div>
 
-<div id="build-ver" style="position:fixed;right:6px;bottom:3px;font:10px monospace;color:#fff8;z-index:5;pointer-events:none">build 20261018e</div>
-<script>window.BUILD_V = "20261018e";
+<div id="build-ver" style="position:fixed;right:6px;bottom:3px;font:10px monospace;color:#fff8;z-index:5;pointer-events:none">build 20261019a</div>
+<script>window.BUILD_V = "20261019a";
 (function () { const d = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
   Object.defineProperty(HTMLImageElement.prototype, "src", { get() { return d.get.call(this); },
     set(v) { if (typeof v === "string" && v.indexOf("assets/") === 0 && v.indexOf("?") < 0) v += "?v=" + window.BUILD_V; d.set.call(this, v); } }); })();</script>
-<script src="js/core.js?v=20261018e"></script>
-<script src="js/input.js?v=20261018e"></script>
-<script src="js/world.js?v=20261018e"></script>
-<script src="js/characters/goku_kid.js?v=20261018e"></script>
-<script src="js/characters/yamcha.js?v=20261018e"></script>
-<script src="js/characters/registry.js?v=20261018e"></script>
-<script src="js/game.js?v=20261018e"></script>
-<script src="js/upgrades.js?v=20261018e"></script>
-<script src="js/combat.js?v=20261018e"></script>
-<script src="js/skills.js?v=20261018e"></script>
-<script src="js/gear.js?v=20261018e"></script>
-<script src="js/update.js?v=20261018e"></script>
-<script src="js/render.js?v=20261018e"></script>
-<script src="js/gacha.js?v=20261018e"></script>
-<script src="js/ui.js?v=20261018e"></script>
-<script src="js/main.js?v=20261018e"></script>
+<script src="js/core.js?v=20261019a"></script>
+<script src="js/input.js?v=20261019a"></script>
+<script src="js/world.js?v=20261019a"></script>
+<script src="js/characters/goku_kid.js?v=20261019a"></script>
+<script src="js/characters/yamcha.js?v=20261019a"></script>
+<script src="js/characters/registry.js?v=20261019a"></script>
+<script src="js/game.js?v=20261019a"></script>
+<script src="js/upgrades.js?v=20261019a"></script>
+<script src="js/combat.js?v=20261019a"></script>
+<script src="js/skills.js?v=20261019a"></script>
+<script src="js/gear.js?v=20261019a"></script>
+<script src="js/update.js?v=20261019a"></script>
+<script src="js/render.js?v=20261019a"></script>
+<script src="js/gacha.js?v=20261019a"></script>
+<script src="js/ui.js?v=20261019a"></script>
+<script src="js/packs.js?v=20261019a"></script>
+<script src="js/main.js?v=20261019a"></script>
 </body>
 </html>
