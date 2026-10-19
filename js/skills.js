@@ -17,7 +17,7 @@ const skillImg = {};
 const DODGE = { cd: 6, cost: 12, dist: 125, time: 0.22, inv: 0.45 };
 const dodgeImg = new Image(); dodgeImg.src = 'assets/personajes/goku_kid/dodge.png';
 const blurImgs = ['blur_1', 'blur_2'].map(n => { const i = new Image(); i.src = 'assets/personajes/goku_kid/' + n + '.png'; return i; });
-for (const n of ['baculo', 'arco_1', 'arco_2']) { const i = new Image(); i.src = 'assets/skills/' + n + '.png'; skillImg[n] = i; }
+for (const n of ['baculo', 'fx_trail_a', 'fx_trail_b', 'fx_crescent_a', 'fx_crescent_b', 'fx_wedge', 'fx_pinwheel_a', 'fx_pinwheel_b', 'fx_pinwheel_c', 'fx_claw_a', 'fx_claw_b', 'fx_flame']) { const i = new Image(); i.src = 'assets/skills/' + n + '.png'; skillImg[n] = i; }
 
 /* copias guardadas por personaje */
 // MODO PRUEBAS: mientras sea true, todos los personajes y habilidades están al máximo (el gacha solo da personajes por ahora).
@@ -79,7 +79,7 @@ const SKILL_FN = {
     setPose(8, 0.07); pending.push({ t: 0.07, fn: () => setPose(9, 0.07) }, { t: 0.14, fn: () => setPose(10, 0.07) }, { t: 0.21, fn: () => setPose(11, 0.16) });
     let best = null, bd = 1e9;
     for (const e of enemies) if (!e.dead && inLine(e, P.x, P.y, d.dx, d.dy, len, 90)) { const q = (e.x - P.x) ** 2 + (e.y - P.y) ** 2; if (q < bd) { bd = q; best = e; } }
-    fx.push({ k: 'staffline', x: P.x, y: P.y - 14, a: d.a, len, t: 0.3, max: 0.3 });
+    fx.push({ k: 'staffline', x: P.x, y: P.y - 14, a: d.a, len, lv: L, t: 0.34, max: 0.34 });
     pending.push({ t: 0.2, fn: () => { if (best && !best.dead) { hurtEnemy(best, dmg, d.dx, d.dy, 320); shake = Math.max(shake, 0.12); burst(best.x, best.y, '#ff5a7a', 10, 220); } sfxBeep(160, 0.12, 'sawtooth'); } });
   },
   baculo_giro(L) {
@@ -94,9 +94,13 @@ const SKILL_FN = {
   baculo_boomerang(L) {
     const d = aimDir(500);
     if (Math.abs(d.dx) > 0.2) P.face = d.dx > 0 ? 1 : -1;
-    P.a.punch = 0.25; setPose(8, 0.1); pending.push({ t: 0.1, fn: () => setPose(9, 0.2) });
-    boomers.push({ x: P.x, y: P.y - 10, dx: d.dx, dy: d.dy, out: 260 + L * 25, d: 0, back: false, rot: 0, dmg: 20 + L * 7, hit: new Set() });
-    sfxBeep(420, 0.08, 'triangle');
+    P.a.punch = 0.25;
+    setPose(8, 0.13);   // sostiene el báculo con las dos manos...
+    pending.push({ t: 0.13, fn: () => {   // ...y al soltarlo (manos vacías) el báculo sale de las manos
+      if (!P) return;
+      setPose(9, 0.3);
+      boomers.push({ x: P.x + P.face * 24, y: P.y - 15, dx: d.dx, dy: d.dy, out: 260 + L * 25, d: 0, back: false, rot: Math.PI / 2, dmg: 20 + L * 7, hit: new Set() });
+      sfxBeep(420, 0.08, 'triangle'); } });
   },
   rogafufuken(L) {
     const d = aimDir(240), n = 5 + L, dmg = 7 + L * 3, len = 120 + L * 6;
@@ -232,15 +236,25 @@ function drawSkillFx(f) {
     ctx.drawImage(st, -st.naturalWidth * 1.2, -len / 2, st.naturalWidth * 2.4, len); ctx.restore();
   };
   if (f.k === 'staffline') {   // estela roja del golpe (alcance real del báculo)
-    ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a); ctx.globalAlpha = 0.85 * (1 - k);
-    const L = f.len * (0.35 + 0.65 * Math.min(1, k * 2.2));
-    const g = ctx.createLinearGradient(30, 0, L, 0); g.addColorStop(0, 'rgba(255,60,100,0)'); g.addColorStop(0.7, 'rgba(255,70,110,.9)'); g.addColorStop(1, 'rgba(255,230,235,.95)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(30, -2); ctx.lineTo(L, -5 * (1 - k) - 1); ctx.lineTo(L + 6, 0); ctx.lineTo(L, 5 * (1 - k) + 1); ctx.lineTo(30, 2); ctx.closePath(); ctx.fill(); ctx.restore();
+    const tr = skillImg.fx_trail_a, cr = skillImg.fx_crescent_a;
+    if (tr && tr.complete && tr.naturalWidth) {
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a); ctx.imageSmoothingEnabled = false;
+      const reach = Math.min(1, k * 2.4), L = Math.max(30, (f.len - 26) * reach);
+      ctx.globalAlpha = Math.min(1, 1.6 * (1 - k)); ctx.drawImage(tr, 26, -tr.naturalHeight * 1.1, L, tr.naturalHeight * 2.2);
+      if (f.lv >= 4 && cr && cr.complete && cr.naturalWidth) { ctx.globalAlpha = Math.min(1, 1.6 * (1 - k)); const sc = 1.1 + 0.1 * f.lv; ctx.drawImage(cr, 26 + L - cr.naturalWidth * sc * 0.5, -cr.naturalHeight * sc * 0.5, cr.naturalWidth * sc, cr.naturalHeight * sc); }
+      ctx.restore();
+    }
     return true;
   }
-  if (f.k === 'staffspin') {   // anillo rojo del giro (el báculo se ve en los cuadros de Goku)
+  if (f.k === 'staffspin') {   // remolino rojo del giro (el báculo se ve en los cuadros de Goku)
     f.x = P.x; f.y = P.y - 12;
-    ctx.save(); ctx.globalAlpha = 0.6 * (1 - k); ctx.strokeStyle = '#ff5a7a'; ctx.lineWidth = 6 * (1 - k) + 2; ctx.beginPath(); ctx.arc(f.x, f.y + 12, f.r * (0.6 + 0.4 * Math.min(1, k * 3)), 0, TAU); ctx.stroke(); ctx.restore();
+    const pa = skillImg.fx_pinwheel_a, pc = skillImg.fx_pinwheel_c;
+    ctx.save(); ctx.globalAlpha = 0.35 * (1 - k); ctx.strokeStyle = '#ff5a7a'; ctx.lineWidth = 4 * (1 - k) + 1; ctx.beginPath(); ctx.arc(f.x, f.y + 12, f.r * (0.6 + 0.4 * Math.min(1, k * 3)), 0, TAU); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = Math.min(0.7, 1.4 * (1 - k));
+    const sc = f.r / 48;
+    if (pa && pa.complete && pa.naturalWidth) { ctx.save(); ctx.translate(f.x, f.y + 12); ctx.rotate(k * TAU * 3); ctx.drawImage(pa, -pa.naturalWidth * sc / 2, -pa.naturalHeight * sc / 2, pa.naturalWidth * sc, pa.naturalHeight * sc); ctx.restore(); }
+    if (pc && pc.complete && pc.naturalWidth) { ctx.save(); ctx.translate(f.x, f.y + 12); ctx.rotate(-k * TAU * 2 + 1); ctx.drawImage(pc, -pc.naturalWidth * sc * 0.4, -pc.naturalHeight * sc * 0.4, pc.naturalWidth * sc * 0.8, pc.naturalHeight * sc * 0.8); ctx.restore(); }
+    ctx.restore();
     return true;
   }
   if (f.k === 'blur') {
@@ -266,7 +280,7 @@ function drawSkillFx(f) {
 }
 function drawSkillProjectiles() {
   const st = skillImg.baculo;
-  for (const b of boomers) { if (!st.complete) continue; ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.imageSmoothingEnabled = false; ctx.drawImage(st, -st.naturalWidth * 1.2, -34, st.naturalWidth * 2.4, 68); ctx.restore(); }
+  for (const b of boomers) { if (!st.complete) continue; ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.imageSmoothingEnabled = false; ctx.drawImage(st, -st.naturalWidth * 1.5, -32, st.naturalWidth * 3, 64); ctx.restore(); }
   for (const r of rockets) {
     const im = yam['rocket_' + (1 + Math.floor(time * 20) % 2)];
     ctx.save(); ctx.translate(r.x, r.y); ctx.rotate(Math.atan2(r.vy, r.vx)); ctx.imageSmoothingEnabled = false;
@@ -278,9 +292,9 @@ function drawSkillProjectiles() {
 
 /* ---------- barra de botones (DOM) ---------- */
 const SKILL_ICON = {
-  staff:  '<img src="assets/skills/baculo.png" style="transform:rotate(45deg) scale(1.1)">',
-  spin:   '<img src="assets/skills/baculo.png" style="transform:rotate(-30deg)"><b class="sk-sym">⟳</b>',
-  boom:   '<img src="assets/skills/baculo.png" style="transform:rotate(60deg)"><b class="sk-sym">↺</b>',
+  staff:  '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(45deg) scale(1.1)">',
+  spin:   '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(-30deg)"><b class="sk-sym">⟳</b>',
+  boom:   '<img src="assets/skills/baculo.png" style="width:9px;height:48px;transform:rotate(60deg)"><b class="sk-sym">↺</b>',
   wolf:   '<b class="sk-emoji">🐺</b>', jkp: '<b class="sk-emoji">✊</b>', katana: '<b class="sk-emoji">🗡️</b>', rocket: '<b class="sk-emoji">🚀</b>'
 };
 function buildSkillBar() {
